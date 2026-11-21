@@ -1,0 +1,31 @@
+# Credenciales y configuración local (nunca al repo)
+.env
+.env.*
+!.env.example
+*.pfx
+*.pem
+secrets/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Datos locales del lago y del emulador de almacenamiento
+data/
+__azurite_db*
+__blobstorage__/
+__queuestorage__/
+
+# Power Platform: paquetes descargados (el código fuente va como .pa.yaml)
+*.msapp
+*.zip
+
+# Sistema y editores
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

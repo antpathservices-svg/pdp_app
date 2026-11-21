@@ -1,0 +1,119 @@
+#Requires -Version 7.4
+<#
+.SYNOPSIS
+    Crea o actualiza las listas de SharePoint de la capa raw a partir de sharepoint/productos.json.
+
+.DESCRIPTION
+    Una lista por producto de datos y una columna por atributo, con el mismo mapeo de tipos que el
+    Marketplace de datos. Es idempotente: si la lista o la columna ya existen, no las vuelve a crear,
+    así que se puede correr varias veces y en cada sucursal.
+
+    - Atributo con nombre reservado de SharePoint (ID, Title, Version, Order…): el nombre interno
+      lleva el sufijo _raw y el nombre visible se conserva.
+    - Columnas de la llave y de carga incremental: indexadas (salvo las de varias líneas).
+    - Capa raw: ninguna columna se fuerza obligatoria ni única; Title deja de ser obligatoria.
+
+.PARAMETER SiteUrl
+    URL del sitio, por ejemplo https://<tenant>.sharepoint.com/sites/<sitio>.
+
+.PARAMETER ClientId
+    Client ID del registro de aplicación en Entra ID usado por PnP.PowerShell para iniciar sesión.
+
+.PARAMETER Productos
+    Ids de productos a desplegar (admite comodines). Por omisión, todos.
+
+.PARAMETER Plan
+    No se conecta a SharePoint: solo muestra las listas y columnas que crearía.
+
+.EXAMPLE
+    ./Deploy-Listas.ps1 -Plan
+.EXAMPLE
+    ./Deploy-Listas.ps1 -SiteUrl https://contoso.sharepoint.com/sites/dpz -ClientId 00000000-0000-0000-0000-000000000000 -Productos 'raw_inv_*'
+#>
+[CmdletBinding(DefaultParameterSetName = 'Deploy')]
+param(
+    [Parameter(Mandatory, ParameterSetName = 'Deploy')][string]$SiteUrl,
+    [Parameter(Mandatory, ParameterSetName = 'Deploy')][string]$ClientId,
+    [string[]]$Productos = @('*'),
+    [Parameter(Mandatory, ParameterSetName = 'Plan')][switch]$Plan,
+    [string]$Definicion = (Join-Path $PSScriptRoot 'productos.json')
+)
+
+$ErrorActionPreference = 'Stop'
+
+$Reservados = 'id', 'title', 'version', 'order', 'created', 'modified', 'author', 'editor',
+              'contenttype', 'attachments', 'edit', 'linktitle', 'docicon', 'path'
+$Largos     = 'referencia', 'comentarios', 'comentario', 'historial', 'firma', 'comprobante',
+              'accion', 'reactivo', 'resolucion'
+
+function Get-Columna {
+    param($Producto, $Atributo)
+    $nombre, $tipo = $Atributo[0], $Atributo[1]
+    $interno = if ($Reservados -contains $nombre.ToLower()) { "${nombre}_raw" } else { $nombre }
+    $llave   = $Producto.pk -split ',' | ForEach-Object Trim
+    $indexar = ($llave -contains $nombre) -or ($nombre -eq $Producto.inc)
+    $base    = "Name=`"$interno`" StaticName=`"$interno`" DisplayName=`"$nombre`""
+
+    $xml = switch ($tipo) {
+        'entero'     { "<Field Type=`"Number`" $base Decimals=`"0`"" }
+        'decimal'    { "<Field Type=`"Number`" $base" }
+        'fecha'      { "<Field Type=`"DateTime`" $base Format=`"DateOnly`"" }
+        'fecha-hora' { "<Field Type=`"DateTime`" $base Format=`"DateTime`"" }
+        'booleano'   { "<Field Type=`"Boolean`" $base" }
+        default {
+            if ($tipo -eq 'lista' -or $Largos -contains $nombre) { "<Field Type=`"Note`" $base NumLines=`"6`" RichText=`"FALSE`"" }
+            else { "<Field Type=`"Text`" $base MaxLength=`"255`"" }
+        }
+    }
+    $indexable = $xml -notmatch 'Type="Note"'
+    $indexar = $indexar -and $indexable
+    if ($indexar) { $xml += ' Indexed="TRUE"' }
+    [pscustomobject]@{ Atributo = $nombre; Interno = $interno; Tipo = $tipo; Indexada = $indexar; Xml = "$xml />" }
+}
+
+$Productos = $Productos -split ',' | ForEach-Object Trim | Where-Object { $_ }   # pwsh -File pasa 'a,b' como un solo texto
+$def = Get-Content $Definicion -Raw -Encoding utf8 | ConvertFrom-Json
+$seleccion = $def.productos | Where-Object { $id = $_.id; $Productos | Where-Object { $id -like $_ } }
+if (-not $seleccion) { throw "Ningún producto coincide con: $($Productos -join ', ')" }
+
+Write-Host "Definición $($def.version.version) · $(@($seleccion).Count) listas" -ForegroundColor Cyan
+
+if ($Plan) {
+    foreach ($p in $seleccion) {
+        $cols = $p.ent[0].a | ForEach-Object { Get-Columna $p $_ }
+        Write-Host "`n$($p.id)  ($($p.origen) · llave: $($p.pk))" -ForegroundColor Yellow
+        $cols | Format-Table Atributo, Interno, Tipo, Indexada -AutoSize | Out-String | Write-Host
+    }
+    return
+}
+
+if (-not (Get-Module -ListAvailable PnP.PowerShell)) { throw 'Falta el módulo PnP.PowerShell: Install-Module PnP.PowerShell -Scope CurrentUser' }
+Connect-PnPOnline -Url $SiteUrl -ClientId $ClientId -Interactive
+
+foreach ($p in $seleccion) {
+    $cols = $p.ent[0].a | ForEach-Object { Get-Columna $p $_ }
+    $lista = Get-PnPList -Identity "Lists/$($p.id)" -ErrorAction SilentlyContinue
+    if (-not $lista) {
+        Write-Host "+ lista $($p.id)" -ForegroundColor Green
+        $lista = New-PnPList -Title $p.id -Template GenericList -Url "Lists/$($p.id)"
+        Set-PnPField -List $p.id -Identity 'Title' -Values @{ Required = $false } | Out-Null
+    } else {
+        Write-Host "= lista $($p.id)"
+    }
+
+    $existentes = (Get-PnPField -List $p.id).InternalName
+    foreach ($c in $cols) {
+        if ($existentes -contains $c.Interno) { continue }
+        Write-Host "  + columna $($c.Interno) ($($c.Tipo)$(if ($c.Indexada) { ', indexada' }))" -ForegroundColor Green
+        Add-PnPFieldFromXml -List $p.id -FieldXml $c.Xml | Out-Null
+    }
+
+    if ($p.filas -gt 5000) {
+        Write-Warning "$($p.id): $($p.filas) filas en la muestra, más que el umbral de vista de 5,000. Filtra vistas y galerías por columnas indexadas."
+    }
+
+    $vista = Get-PnPView -List $p.id | Where-Object DefaultView
+    Set-PnPView -List $p.id -Identity $vista.Id -Fields @($cols.Interno) | Out-Null
+}
+
+Write-Host "`nListo." -ForegroundColor Cyan
