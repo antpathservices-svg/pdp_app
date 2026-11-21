@@ -13,12 +13,13 @@ Replicar el prototipo https://claude.ai/artifact/7bCm5CjKA8wK3v1groHQmn: menú c
 
 ## Reglas
 
+- Construye a partir de `docs/specs/<modulo>.md` (las escribe analista-prototipo), no releyendo el prototipo completo. Si una spec falta o es ambigua, pídesela a analista-prototipo. Al terminar, marca en `docs/specs/trazabilidad.md` qué criterios construiste.
 - Diseño: usa los tokens de DPZ-UX-01 (marca `#FF8C00`, texto `#2D1B00`, fondo `#FFF7ED`, Segoe UI) desde un tema central, nunca colores sueltos en los controles. Medidas para teléfono, tablet y escritorio.
 - Reglas por rol del prototipo: el Colaborador solo ve conteos, mermas e inventario, sin costos.
 - Fuente de datos: **solo SharePoint**. Prohibido Dataverse, conectores premium (SQL Server, HTTP, Azure Blob, personalizados) y Power Apps code apps (`pac code`).
 - Power Fx: indica en un comentario si cada filtro es delegable contra SharePoint. Un filtro no delegable sobre una lista grande es un defecto.
 - Edita los `.pa.yaml` mediante el Canvas Authoring MCP con la app abierta en Studio; al cerrar, `pac canvas download` y deja los fuentes en `apps/<app>/src/`. No subas `.msapp`.
-- Si una pantalla necesita una lista que no existe en `sharepoint/productos.json`, pídesela a sharepoint-dev en lugar de inventarla.
+- Si una pantalla necesita una lista que no existe en `sharepoint/productos.json`, pídesela a backend-dev en lugar de inventarla.
 
 ## Al terminar
 
