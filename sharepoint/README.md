@@ -41,6 +41,14 @@ pwsh ./sharepoint/Deploy-Listas.ps1 -SiteUrl https://<tenant>.sharepoint.com/sit
 
 `-ClientId` es el registro de aplicación en Entra ID que PnP.PowerShell usa para iniciar sesión. Se crea una sola vez por tenant con `Register-PnPEntraIDAppForInteractiveLogin`.
 
+## Despliegues
+
+| Fecha | Sitio | Resultado |
+|---|---|---|
+| 2026-11-21 | `https://franquiciasab.sharepoint.com/sites/DEPRITAM` | 40 listas, 234 columnas y 57 índices, verificados contra `productos.json`. Tardó unos 60 minutos (cada columna es una llamada). |
+
+Nota: SharePoint guardó la columna `c` de `raw_app_receta_producto` con nombre interno `_x0063_` (el nombre visible sigue siendo `c`). Power Apps la ve como `c`; por Microsoft Graph se escribe como `_x0063_`.
+
 ## Pendiente
 
 - `raw_pos_venta_cuenta` y `raw_pos_venta_partida` superan las 5,000 filas del umbral de vista: las galerías de Power Apps deben filtrar por columnas indexadas y de forma delegable.

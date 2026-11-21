@@ -101,7 +101,8 @@ foreach ($p in $seleccion) {
         Write-Host "= lista $($p.id)"
     }
 
-    $existentes = (Get-PnPField -List $p.id).InternalName
+    # SharePoint puede codificar el nombre interno (p. ej. 'c' queda como '_x0063_'); StaticName conserva el original.
+    $existentes = Get-PnPField -List $p.id | ForEach-Object { $_.InternalName; $_.StaticName }
     foreach ($c in $cols) {
         if ($existentes -contains $c.Interno) { continue }
         Write-Host "  + columna $($c.Interno) ($($c.Tipo)$(if ($c.Indexada) { ', indexada' }))" -ForegroundColor Green
