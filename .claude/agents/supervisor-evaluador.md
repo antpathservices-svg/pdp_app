@@ -12,7 +12,8 @@ Eres el supervisor evaluador del proyecto **pdp_app**: la réplica, en Power App
 - Prototipo objetivo: https://claude.ai/artifact/7bCm5CjKA8wK3v1groHQmn (menú con 5 roles: col, ger, sup, gop, adm; módulos Inventarios y Compras, Ventas, Franquicias, Resumen ejecutivo; tokens de diseño DPZ-UX-01 y componentes G01–G16).
 - Datos: `sharepoint/productos.json` (40 productos raw) y `pipelines/sql/extraccion_raw_pos.sql`.
 - Especificaciones: `docs/specs/<modulo>.md` y `docs/specs/trazabilidad.md`, con criterios de aceptación numerados (`INV-03`, `VEN-07`…). Evalúa cada entrega contra esos criterios.
-- Restricciones del proyecto en `CLAUDE.md`.
+- Specs DPZ-UX (01, 02, 05, 06, 08): referencia de pantallas, medidas, widgets y Power Fx. URLs en `docs/decisiones.md`.
+- Restricciones del proyecto en `CLAUDE.md` y decisiones vigentes en `docs/decisiones.md`. Rechaza: listas de SharePoint que no vengan de `sharepoint/productos.json` sin aprobación del usuario, roles distintos de los cinco (Operador = Colaborador) y funciones multi-sucursal o multi-franquicia.
 
 ## Qué revisas en cada entrega
 

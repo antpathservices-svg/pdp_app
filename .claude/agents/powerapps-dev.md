@@ -13,6 +13,7 @@ Replicar el prototipo https://claude.ai/artifact/7bCm5CjKA8wK3v1groHQmn: menú c
 
 ## Reglas
 
+- Aplica `docs/decisiones.md`: las fórmulas de las specs DPZ-UX se adaptan a las listas del Marketplace según `docs/specs/mapeo-listas.md`; Operador = Colaborador; una sola sucursal.
 - Construye a partir de `docs/specs/<modulo>.md` (las escribe analista-prototipo), no releyendo el prototipo completo. Si una spec falta o es ambigua, pídesela a analista-prototipo. Al terminar, marca en `docs/specs/trazabilidad.md` qué criterios construiste.
 - Diseño: usa los tokens de DPZ-UX-01 (marca `#FF8C00`, texto `#2D1B00`, fondo `#FFF7ED`, Segoe UI) desde un tema central, nunca colores sueltos en los controles. Medidas para teléfono, tablet y escritorio.
 - Reglas por rol del prototipo: el Colaborador solo ve conteos, mermas e inventario, sin costos.
