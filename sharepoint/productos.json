@@ -1,0 +1,2355 @@
+{
+  "version": {
+    "plataforma": "Plataforma de Gestión Operativa",
+    "version": "v1.4",
+    "fase": "En desarrollo",
+    "build": "1794284509-c5ba",
+    "runtime": "0.2.96",
+    "capa": "Raw",
+    "cambios": [
+      [
+        "v1.4",
+        "Orden de compra con varios insumos"
+      ],
+      [
+        "v1.3",
+        "Categorías desplegables, Control de Masa y transferencias"
+      ]
+    ],
+    "snapshot_pos": "2026-10-28",
+    "contrato_bronze": "2026-10-09",
+    "bd": "softrestaurant10 · SQL Server · Soft Restaurant 10",
+    "sucursal": "Guanajuato · Río Bravo (piloto), idempresa 1",
+    "catalogo_auditoria": "v2026.1",
+    "marketplace": "1.2",
+    "fecha_marketplace": "2026-11-14",
+    "app_url": "https://claude.ai/artifact/7bCm5CjKA8wK3v1groHQmn",
+    "alcance_pos": "Ventas, cortes de caja y catálogo de productos"
+  },
+  "productos": [
+    {
+      "id": "raw_pos_venta_cuenta",
+      "origen": "pos",
+      "dominio": "venta",
+      "desc": "Cuentas (cheques) del punto de venta, una fila por cuenta, tal como vienen del POS.",
+      "tabla": "cheques",
+      "modulo": "Ventas · Resumen ejecutivo",
+      "grano": "1 fila por cuenta",
+      "estado": "En desarrollo",
+      "pk": "folio",
+      "muestra": "dbo.cheques.txt",
+      "filas": 27089,
+      "orden": "cierre DESC",
+      "inc": "cierre",
+      "nota": null,
+      "ent": [
+        {
+          "n": "Cuenta",
+          "a": [
+            [
+              "folio",
+              "entero",
+              "Folio de la cuenta",
+              "dbo.cheques.folio"
+            ],
+            [
+              "idempresa",
+              "texto",
+              "Sucursal",
+              "dbo.cheques.idempresa"
+            ],
+            [
+              "numcheque",
+              "entero",
+              "Número de cheque impreso",
+              "dbo.cheques.numcheque"
+            ],
+            [
+              "fecha",
+              "fecha-hora",
+              "Apertura de la cuenta",
+              "dbo.cheques.fecha"
+            ],
+            [
+              "cierre",
+              "fecha-hora",
+              "Cierre de la cuenta",
+              "dbo.cheques.cierre"
+            ],
+            [
+              "idturno",
+              "entero",
+              "Turno de caja (raw_pos_corte_turno)",
+              "dbo.cheques.idturno"
+            ],
+            [
+              "tipodeservicio",
+              "entero",
+              "Tipo de servicio",
+              "dbo.cheques.tipodeservicio"
+            ],
+            [
+              "idarearestaurant",
+              "texto",
+              "Área (raw_pos_venta_area)",
+              "dbo.cheques.idarearestaurant"
+            ],
+            [
+              "nopersonas",
+              "entero",
+              "Personas",
+              "dbo.cheques.nopersonas"
+            ],
+            [
+              "pagado",
+              "booleano",
+              "Cuenta pagada",
+              "dbo.cheques.pagado"
+            ],
+            [
+              "cancelado",
+              "booleano",
+              "Cuenta cancelada",
+              "dbo.cheques.cancelado"
+            ],
+            [
+              "idmotivocancela",
+              "texto",
+              "Motivo de cancelación",
+              "dbo.cheques.idmotivocancela"
+            ],
+            [
+              "idtipodescuento",
+              "texto",
+              "Tipo de descuento (raw_pos_venta_tipo_descuento)",
+              "dbo.cheques.idtipodescuento"
+            ],
+            [
+              "totalarticulos",
+              "decimal",
+              "Artículos de la cuenta",
+              "dbo.cheques.totalarticulos"
+            ],
+            [
+              "subtotal",
+              "decimal",
+              "Subtotal registrado",
+              "dbo.cheques.subtotal"
+            ],
+            [
+              "descuentoimporte",
+              "decimal",
+              "Descuento registrado",
+              "dbo.cheques.descuentoimporte"
+            ],
+            [
+              "totalcortesias",
+              "decimal",
+              "Cortesías registradas",
+              "dbo.cheques.totalcortesias"
+            ],
+            [
+              "total",
+              "decimal",
+              "Total registrado",
+              "dbo.cheques.total"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_pos_venta_partida",
+      "origen": "pos",
+      "dominio": "venta",
+      "desc": "Partidas de cada cuenta: producto, cantidad, precios y descuento, sin unir a otras tablas.",
+      "tabla": "cheqdet",
+      "modulo": "Ventas y mezcla",
+      "grano": "1 fila por cuenta y movimiento",
+      "estado": "En desarrollo",
+      "pk": "foliodet, movimiento",
+      "muestra": "dbo.cheqdet.txt",
+      "filas": 40331,
+      "orden": "foliodet DESC, movimiento",
+      "inc": "hora",
+      "nota": "La muestra une productos para traer la descripción; en raw se omite esa columna.",
+      "ent": [
+        {
+          "n": "Partida de venta",
+          "a": [
+            [
+              "foliodet",
+              "entero",
+              "Cuenta (raw_pos_venta_cuenta.folio)",
+              "dbo.cheqdet.foliodet"
+            ],
+            [
+              "movimiento",
+              "entero",
+              "Número de partida",
+              "dbo.cheqdet.movimiento"
+            ],
+            [
+              "idproducto",
+              "texto",
+              "Producto (raw_pos_producto)",
+              "dbo.cheqdet.idproducto"
+            ],
+            [
+              "cantidad",
+              "decimal",
+              "Cantidad",
+              "dbo.cheqdet.cantidad"
+            ],
+            [
+              "precio",
+              "decimal",
+              "Precio con IVA",
+              "dbo.cheqdet.precio"
+            ],
+            [
+              "preciosinimpuestos",
+              "decimal",
+              "Precio sin IVA",
+              "dbo.cheqdet.preciosinimpuestos"
+            ],
+            [
+              "preciocatalogo",
+              "decimal",
+              "Precio de catálogo",
+              "dbo.cheqdet.preciocatalogo"
+            ],
+            [
+              "descuento",
+              "decimal",
+              "Descuento de la partida",
+              "dbo.cheqdet.descuento"
+            ],
+            [
+              "idtipodescuento",
+              "texto",
+              "Tipo de descuento",
+              "dbo.cheqdet.idtipodescuento"
+            ],
+            [
+              "idcortesia",
+              "texto",
+              "Cortesía",
+              "dbo.cheqdet.idcortesia"
+            ],
+            [
+              "modificador",
+              "booleano",
+              "Es modificador",
+              "dbo.cheqdet.modificador"
+            ],
+            [
+              "mitad",
+              "entero",
+              "Marca de mitad",
+              "dbo.cheqdet.mitad"
+            ],
+            [
+              "idproductocompuesto",
+              "texto",
+              "Producto compuesto",
+              "dbo.cheqdet.idproductocompuesto"
+            ],
+            [
+              "productocompuestoprincipal",
+              "booleano",
+              "Es el principal del compuesto",
+              "dbo.cheqdet.productocompuestoprincipal"
+            ],
+            [
+              "hora",
+              "fecha-hora",
+              "Hora de captura",
+              "dbo.cheqdet.hora"
+            ],
+            [
+              "idturno_cierre",
+              "entero",
+              "Turno de cierre",
+              "dbo.cheqdet.idturno_cierre"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_pos_venta_cancelacion",
+      "origen": "pos",
+      "dominio": "venta",
+      "desc": "Partidas canceladas en el punto de venta.",
+      "tabla": "cancela",
+      "modulo": "Ventas",
+      "grano": "1 fila por cancelación",
+      "estado": "En desarrollo",
+      "pk": "cancelaid",
+      "muestra": "dbo.motivoscancelacion.txt (bloque 31)",
+      "filas": 15,
+      "orden": "fecha DESC",
+      "inc": "fecha",
+      "nota": "La muestra convierte idmotivocancela a varchar y une productos y motivos; en raw se lee la columna sin conversión ni uniones.",
+      "ent": [
+        {
+          "n": "Cancelación",
+          "a": [
+            [
+              "cancelaid",
+              "entero",
+              "Clave de la cancelación",
+              "dbo.cancela.cancelaid"
+            ],
+            [
+              "foliocheque",
+              "entero",
+              "Cuenta (raw_pos_venta_cuenta.folio)",
+              "dbo.cancela.foliocheque"
+            ],
+            [
+              "clave",
+              "texto",
+              "Producto (raw_pos_producto)",
+              "dbo.cancela.clave"
+            ],
+            [
+              "cantidad",
+              "decimal",
+              "Cantidad cancelada",
+              "dbo.cancela.cantidad"
+            ],
+            [
+              "precio",
+              "decimal",
+              "Precio",
+              "dbo.cancela.precio"
+            ],
+            [
+              "fecha",
+              "fecha-hora",
+              "Fecha de cancelación",
+              "dbo.cancela.fecha"
+            ],
+            [
+              "idmotivocancela",
+              "texto",
+              "Motivo (raw_pos_venta_motivo_cancelacion)",
+              "dbo.cancela.idmotivocancela"
+            ],
+            [
+              "idturno_cierre",
+              "entero",
+              "Turno de cierre",
+              "dbo.cancela.idturno_cierre"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_pos_venta_motivo_cancelacion",
+      "origen": "pos",
+      "dominio": "venta",
+      "desc": "Catálogo de motivos de cancelación.",
+      "tabla": "motivoscancelacion",
+      "modulo": "Ventas",
+      "grano": "1 fila por motivo",
+      "estado": "En desarrollo",
+      "pk": "idmotivocancela",
+      "muestra": "dbo.motivoscancelacion.txt (bloque 32)",
+      "filas": 4,
+      "orden": null,
+      "inc": null,
+      "nota": "En la muestra idmotivocancela viene en NULL en las 4 filas.",
+      "ent": [
+        {
+          "n": "Motivo de cancelación",
+          "a": [
+            [
+              "idmotivocancela",
+              "texto",
+              "Clave del motivo (NULL en la muestra)",
+              "dbo.motivoscancelacion.idmotivocancela"
+            ],
+            [
+              "descripcion",
+              "texto",
+              "Motivo",
+              "dbo.motivoscancelacion.descripcion"
+            ],
+            [
+              "genera_desperdicio",
+              "booleano",
+              "Genera desperdicio",
+              "dbo.motivoscancelacion.genera_desperdicio"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_pos_venta_tipo_descuento",
+      "origen": "pos",
+      "dominio": "venta",
+      "desc": "Catálogo de tipos de descuento.",
+      "tabla": "tipodescuento",
+      "modulo": "Ventas",
+      "grano": "1 fila por tipo",
+      "estado": "En desarrollo",
+      "pk": "idtipodescuento",
+      "muestra": "dbo.tipodescuento.txt (bloque 35)",
+      "filas": 5,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Tipo de descuento",
+          "a": [
+            [
+              "idtipodescuento",
+              "texto",
+              "Clave",
+              "dbo.tipodescuento.idtipodescuento"
+            ],
+            [
+              "desc_tipodescuento",
+              "texto",
+              "Nombre de la promoción",
+              "dbo.tipodescuento.desc_tipodescuento"
+            ],
+            [
+              "descuento",
+              "decimal",
+              "Porcentaje de descuento",
+              "dbo.tipodescuento.descuento"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_pos_venta_area",
+      "origen": "pos",
+      "dominio": "venta",
+      "desc": "Áreas del restaurante: comedor, domicilio y rápido.",
+      "tabla": "areasrestaurant",
+      "modulo": "Ventas",
+      "grano": "1 fila por área",
+      "estado": "En desarrollo",
+      "pk": "idarearestaurant",
+      "muestra": "dbo.areasrestaurant.txt (bloque 34)",
+      "filas": 3,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Área del restaurante",
+          "a": [
+            [
+              "idarearestaurant",
+              "texto",
+              "Clave del área",
+              "dbo.areasrestaurant.idarearestaurant"
+            ],
+            [
+              "descripcion",
+              "texto",
+              "Nombre del área",
+              "dbo.areasrestaurant.descripcion"
+            ],
+            [
+              "idtiposervicio",
+              "entero",
+              "Tipo de servicio",
+              "dbo.areasrestaurant.idtiposervicio"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_pos_corte_turno",
+      "origen": "pos",
+      "dominio": "corte",
+      "desc": "Turnos de caja por estación (CAJA1, DRIVE): base de los cortes de caja.",
+      "tabla": "turnos",
+      "modulo": "Cortes de caja (por construir)",
+      "grano": "1 fila por turno",
+      "estado": "En desarrollo",
+      "pk": "idturnointerno",
+      "muestra": "dbo.areasrestaurant.txt (bloque 33)",
+      "filas": 229,
+      "orden": "apertura DESC",
+      "inc": "apertura",
+      "nota": "La muestra calcula horas_turno con DATEDIFF; en raw se omite.",
+      "ent": [
+        {
+          "n": "Turno de caja",
+          "a": [
+            [
+              "idturnointerno",
+              "entero",
+              "Clave interna del turno",
+              "dbo.turnos.idturnointerno"
+            ],
+            [
+              "idturno",
+              "entero",
+              "Número de turno (raw_pos_venta_cuenta.idturno)",
+              "dbo.turnos.idturno"
+            ],
+            [
+              "idempresa",
+              "texto",
+              "Sucursal",
+              "dbo.turnos.idempresa"
+            ],
+            [
+              "idestacion",
+              "texto",
+              "Estación: CAJA1, DRIVE…",
+              "dbo.turnos.idestacion"
+            ],
+            [
+              "apertura",
+              "fecha-hora",
+              "Apertura del turno",
+              "dbo.turnos.apertura"
+            ],
+            [
+              "cierre",
+              "fecha-hora",
+              "Cierre del turno",
+              "dbo.turnos.cierre"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_pos_producto",
+      "origen": "pos",
+      "dominio": "producto",
+      "desc": "Catálogo de productos de venta.",
+      "tabla": "productos",
+      "modulo": "Recetas · Costo por producto",
+      "grano": "1 fila por producto",
+      "estado": "En desarrollo",
+      "pk": "idproducto",
+      "muestra": "dbo.productos.txt",
+      "filas": 481,
+      "orden": "idproducto",
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Producto",
+          "a": [
+            [
+              "idproducto",
+              "texto",
+              "Clave del producto",
+              "dbo.productos.idproducto"
+            ],
+            [
+              "descripcion",
+              "texto",
+              "Nombre",
+              "dbo.productos.descripcion"
+            ],
+            [
+              "nombrecorto",
+              "texto",
+              "Nombre corto",
+              "dbo.productos.nombrecorto"
+            ],
+            [
+              "idgrupo",
+              "texto",
+              "Grupo (raw_pos_producto_grupo)",
+              "dbo.productos.idgrupo"
+            ],
+            [
+              "plu",
+              "texto",
+              "Código PLU",
+              "dbo.productos.plu"
+            ],
+            [
+              "usarcomedor",
+              "booleano",
+              "Se vende en comedor",
+              "dbo.productos.usarcomedor"
+            ],
+            [
+              "usardomicilio",
+              "booleano",
+              "Se vende a domicilio",
+              "dbo.productos.usardomicilio"
+            ],
+            [
+              "usarrapido",
+              "booleano",
+              "Se vende en servicio rápido",
+              "dbo.productos.usarrapido"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_pos_producto_precio",
+      "origen": "pos",
+      "dominio": "producto",
+      "desc": "Precio de lista y bloqueo de cada producto por sucursal.",
+      "tabla": "productosdetalle",
+      "modulo": "Recetas · Costo por producto",
+      "grano": "1 fila por producto y sucursal",
+      "estado": "En desarrollo",
+      "pk": "idproducto, idempresa",
+      "muestra": "dbo.productosdetalle.txt",
+      "filas": 481,
+      "orden": "idproducto",
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Precio de producto",
+          "a": [
+            [
+              "idproducto",
+              "texto",
+              "Producto (raw_pos_producto)",
+              "dbo.productosdetalle.idproducto"
+            ],
+            [
+              "idempresa",
+              "texto",
+              "Sucursal",
+              "dbo.productosdetalle.idempresa"
+            ],
+            [
+              "precio",
+              "decimal",
+              "Precio con IVA",
+              "dbo.productosdetalle.precio"
+            ],
+            [
+              "preciosinimpuestos",
+              "decimal",
+              "Precio sin IVA",
+              "dbo.productosdetalle.preciosinimpuestos"
+            ],
+            [
+              "bloqueado",
+              "booleano",
+              "Bloqueado para venta",
+              "dbo.productosdetalle.bloqueado"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_pos_producto_grupo",
+      "origen": "pos",
+      "dominio": "producto",
+      "desc": "Grupos de productos: pizzas, combos, bebidas, plataformas de entrega…",
+      "tabla": "grupos",
+      "modulo": "Ventas y mezcla",
+      "grano": "1 fila por grupo",
+      "estado": "En desarrollo",
+      "pk": "idgrupo",
+      "muestra": "dbo.grupos.txt",
+      "filas": 13,
+      "orden": "idgrupo",
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Grupo de producto",
+          "a": [
+            [
+              "idgrupo",
+              "texto",
+              "Clave del grupo",
+              "dbo.grupos.idgrupo"
+            ],
+            [
+              "descripcion",
+              "texto",
+              "Nombre del grupo",
+              "dbo.grupos.descripcion"
+            ],
+            [
+              "clasificacion",
+              "entero",
+              "Clasificación",
+              "dbo.grupos.clasificacion"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_pos_producto_subgrupo",
+      "origen": "pos",
+      "dominio": "producto",
+      "desc": "Subgrupos de productos.",
+      "tabla": "subgrupos",
+      "modulo": "Ventas y mezcla",
+      "grano": "1 fila por subgrupo",
+      "estado": "En desarrollo",
+      "pk": "idsubgrupo",
+      "muestra": "dbo.subgrupos.txt",
+      "filas": 23,
+      "orden": "idsubgrupo",
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Subgrupo de producto",
+          "a": [
+            [
+              "idsubgrupo",
+              "texto",
+              "Clave del subgrupo",
+              "dbo.subgrupos.idsubgrupo"
+            ],
+            [
+              "descripcion",
+              "texto",
+              "Nombre del subgrupo",
+              "dbo.subgrupos.descripcion"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_pos_producto_grupo_subgrupo",
+      "origen": "pos",
+      "dominio": "producto",
+      "desc": "Relación entre grupos y subgrupos.",
+      "tabla": "grupossubgrupos",
+      "modulo": "Ventas y mezcla",
+      "grano": "1 fila por grupo y subgrupo",
+      "estado": "En desarrollo",
+      "pk": "idgrupo, idsubgrupo",
+      "muestra": "dbo.grupossubgrupos.txt",
+      "filas": 23,
+      "orden": "idgrupo, idsubgrupo",
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Grupo–subgrupo",
+          "a": [
+            [
+              "idgrupo",
+              "texto",
+              "Grupo (raw_pos_producto_grupo)",
+              "dbo.grupossubgrupos.idgrupo"
+            ],
+            [
+              "idsubgrupo",
+              "texto",
+              "Subgrupo (raw_pos_producto_subgrupo)",
+              "dbo.grupossubgrupos.idsubgrupo"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_pos_producto_subgrupo_producto",
+      "origen": "pos",
+      "dominio": "producto",
+      "desc": "Relación entre subgrupos y productos.",
+      "tabla": "subgruposproductos",
+      "modulo": "Ventas y mezcla",
+      "grano": "1 fila por subgrupo y producto",
+      "estado": "En desarrollo",
+      "pk": "idsubgrupo, idproducto",
+      "muestra": "dbo.subgruposproductos.txt",
+      "filas": 289,
+      "orden": "idsubgrupo, idproducto",
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Subgrupo–producto",
+          "a": [
+            [
+              "idsubgrupo",
+              "texto",
+              "Subgrupo (raw_pos_producto_subgrupo)",
+              "dbo.subgruposproductos.idsubgrupo"
+            ],
+            [
+              "idproducto",
+              "texto",
+              "Producto (raw_pos_producto)",
+              "dbo.subgruposproductos.idproducto"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_pos_producto_paquete",
+      "origen": "pos",
+      "dominio": "producto",
+      "desc": "Composición de paquetes y combos.",
+      "tabla": "paquetes",
+      "modulo": "Recetas · Combos",
+      "grano": "1 fila por paquete, producto y sucursal",
+      "estado": "En desarrollo",
+      "pk": "idproducto, idproductopaquete, idempresa",
+      "muestra": "pq.idproductopaquete.txt",
+      "filas": 10,
+      "orden": "idproductopaquete",
+      "inc": null,
+      "nota": "En la muestra el rol de las columnas parece invertido: idproductopaquete trae la pizza (01001) e idproducto el combo (03006). Confirmar antes de modelar Silver.",
+      "ent": [
+        {
+          "n": "Componente de paquete",
+          "a": [
+            [
+              "idproductopaquete",
+              "texto",
+              "Producto del paquete",
+              "dbo.paquetes.idproductopaquete"
+            ],
+            [
+              "idproducto",
+              "texto",
+              "Producto relacionado",
+              "dbo.paquetes.idproducto"
+            ],
+            [
+              "cantidad",
+              "decimal",
+              "Cantidad",
+              "dbo.paquetes.cantidad"
+            ],
+            [
+              "idempresa",
+              "texto",
+              "Sucursal",
+              "dbo.paquetes.idempresa"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_inv_insumo",
+      "origen": "inv",
+      "dominio": "insumo",
+      "desc": "Catálogo de insumos con existencia, costo promedio y umbrales.",
+      "tabla": "insumos",
+      "modulo": "Inventarios · Existencias",
+      "grano": "1 fila por insumo",
+      "estado": "En desarrollo",
+      "pk": "idinsumo",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Insumo",
+          "a": [
+            [
+              "idinsumo",
+              "texto",
+              "Clave del insumo",
+              "app: insumos.idinsumo"
+            ],
+            [
+              "descripcion",
+              "texto",
+              "Nombre",
+              "app: insumos.descripcion"
+            ],
+            [
+              "presentacion",
+              "texto",
+              "Unidad de presentación",
+              "app: insumos.presentacion"
+            ],
+            [
+              "idcategoria",
+              "texto",
+              "Categoría",
+              "app: insumos.idcategoria"
+            ],
+            [
+              "idalmacen",
+              "texto",
+              "Almacén",
+              "app: insumos.idalmacen"
+            ],
+            [
+              "existencia",
+              "decimal",
+              "Existencia registrada",
+              "app: insumos.existencia"
+            ],
+            [
+              "stockminimo",
+              "decimal",
+              "Umbral mínimo",
+              "app: insumos.stockminimo"
+            ],
+            [
+              "stockideal",
+              "decimal",
+              "Nivel ideal",
+              "app: insumos.stockideal"
+            ],
+            [
+              "stockmaximo",
+              "decimal",
+              "Umbral máximo",
+              "app: insumos.stockmaximo"
+            ],
+            [
+              "costopromedio",
+              "decimal",
+              "Costo promedio registrado",
+              "app: insumos.costopromedio"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_inv_insumo_categoria",
+      "origen": "inv",
+      "dominio": "insumo",
+      "desc": "Categorías de insumos.",
+      "tabla": "categorias",
+      "modulo": "Inventarios · Conteos",
+      "grano": "1 fila por categoría",
+      "estado": "En desarrollo",
+      "pk": "id",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Categoría de insumo",
+          "a": [
+            [
+              "id",
+              "texto",
+              "Clave (C1…C9)",
+              "app: categorias.id"
+            ],
+            [
+              "nombre",
+              "texto",
+              "Nombre",
+              "app: categorias.nombre"
+            ],
+            [
+              "orden",
+              "entero",
+              "Orden de despliegue",
+              "app: categorias.orden"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_inv_almacen",
+      "origen": "inv",
+      "dominio": "almacen",
+      "desc": "Almacenes de la sucursal.",
+      "tabla": "almacen",
+      "modulo": "Inventarios",
+      "grano": "1 fila por almacén",
+      "estado": "En desarrollo",
+      "pk": "idalmacen",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Almacén",
+          "a": [
+            [
+              "idalmacen",
+              "texto",
+              "Clave",
+              "app: almacen.idalmacen"
+            ],
+            [
+              "nombre",
+              "texto",
+              "Nombre",
+              "app: almacen.nombre"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_inv_unidad",
+      "origen": "inv",
+      "dominio": "insumo",
+      "desc": "Unidades de medida de los insumos.",
+      "tabla": "UNIDADES",
+      "modulo": "Inventarios",
+      "grano": "1 fila por unidad",
+      "estado": "En desarrollo",
+      "pk": "unidad",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Unidad",
+          "a": [
+            [
+              "unidad",
+              "texto",
+              "Pieza, Kilogramo, Litro…",
+              "app: UNIDADES.unidad"
+            ],
+            [
+              "n",
+              "texto",
+              "Nombre en plural",
+              "app: UNIDADES.n"
+            ],
+            [
+              "ab",
+              "texto",
+              "Abreviatura",
+              "app: UNIDADES.ab"
+            ],
+            [
+              "dec",
+              "booleano",
+              "Admite decimales",
+              "app: UNIDADES.dec"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_inv_movimiento_concepto",
+      "origen": "inv",
+      "dominio": "movimiento",
+      "desc": "Tipos de movimiento de inventario.",
+      "tabla": "conceptos",
+      "modulo": "Inventarios · Movimientos",
+      "grano": "1 fila por concepto",
+      "estado": "En desarrollo",
+      "pk": "idconcepto",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Concepto de movimiento",
+          "a": [
+            [
+              "idconcepto",
+              "texto",
+              "CMP, TRE, TRS, SPV, MER, EPP, SPP",
+              "app: conceptos.idconcepto"
+            ],
+            [
+              "descripcion",
+              "texto",
+              "Nombre",
+              "app: conceptos.descripcion"
+            ],
+            [
+              "tipo",
+              "entero",
+              "1 entrada, 2 salida",
+              "app: conceptos.tipo"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_inv_movimiento",
+      "origen": "inv",
+      "dominio": "movimiento",
+      "desc": "Kárdex de entradas y salidas, incluidas las mermas de insumo.",
+      "tabla": "movsinv",
+      "modulo": "Inventarios · Existencias y Mermas",
+      "grano": "1 fila por movimiento",
+      "estado": "En desarrollo",
+      "pk": "fecha, idconcepto, idinsumo",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Movimiento de inventario",
+          "a": [
+            [
+              "fecha",
+              "fecha-hora",
+              "Fecha",
+              "app: movsinv.fecha"
+            ],
+            [
+              "idconcepto",
+              "texto",
+              "Concepto",
+              "app: movsinv.idconcepto"
+            ],
+            [
+              "idinsumo",
+              "texto",
+              "Insumo",
+              "app: movsinv.idinsumo"
+            ],
+            [
+              "cantidad",
+              "decimal",
+              "Cantidad con signo",
+              "app: movsinv.cantidad"
+            ],
+            [
+              "costo",
+              "decimal",
+              "Costo unitario",
+              "app: movsinv.costo"
+            ],
+            [
+              "idalmacen",
+              "texto",
+              "Almacén",
+              "app: movsinv.idalmacen"
+            ],
+            [
+              "referencia",
+              "texto",
+              "Motivo, comentario o folio",
+              "app: movsinv.referencia"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_inv_merma_producto",
+      "origen": "inv",
+      "dominio": "merma",
+      "desc": "Mermas de producto terminado capturadas en la app.",
+      "tabla": "mermasPT",
+      "modulo": "Inventarios · Mermas",
+      "grano": "1 fila por merma",
+      "estado": "En desarrollo",
+      "pk": "fecha, producto",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Merma de producto",
+          "a": [
+            [
+              "fecha",
+              "fecha-hora",
+              "Captura",
+              "app: mermasPT.fecha"
+            ],
+            [
+              "producto",
+              "texto",
+              "Producto terminado",
+              "app: mermasPT.producto"
+            ],
+            [
+              "cantidad",
+              "decimal",
+              "Piezas",
+              "app: mermasPT.cantidad"
+            ],
+            [
+              "referencia",
+              "texto",
+              "Motivo, comentario y fotos",
+              "app: mermasPT.referencia"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_inv_conteo_fisico",
+      "origen": "inv",
+      "dominio": "conteo",
+      "desc": "Encabezado de cada conteo físico.",
+      "tabla": "invfisico",
+      "modulo": "Inventarios · Conteos",
+      "grano": "1 fila por folio",
+      "estado": "En desarrollo",
+      "pk": "folio",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Conteo físico",
+          "a": [
+            [
+              "folio",
+              "entero",
+              "Folio",
+              "app: invfisico.folio"
+            ],
+            [
+              "fecha",
+              "fecha-hora",
+              "Fecha",
+              "app: invfisico.fecha"
+            ],
+            [
+              "idalmacen1",
+              "texto",
+              "Almacén contado",
+              "app: invfisico.idalmacen1"
+            ],
+            [
+              "idalmacen2",
+              "texto",
+              "Segundo almacén",
+              "app: invfisico.idalmacen2"
+            ],
+            [
+              "inventarioteorico1",
+              "decimal",
+              "Valor teórico registrado",
+              "app: invfisico.inventarioteorico1"
+            ],
+            [
+              "inventariofisico1",
+              "decimal",
+              "Valor contado registrado",
+              "app: invfisico.inventariofisico1"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_inv_conteo_fisico_partida",
+      "origen": "inv",
+      "dominio": "conteo",
+      "desc": "Partidas de cada conteo físico.",
+      "tabla": "invfisicomovtos",
+      "modulo": "Inventarios · Conteos",
+      "grano": "1 fila por folio e insumo",
+      "estado": "En desarrollo",
+      "pk": "folio, idinsumo",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Partida de conteo físico",
+          "a": [
+            [
+              "folio",
+              "entero",
+              "Conteo",
+              "app: invfisicomovtos.folio"
+            ],
+            [
+              "idinsumo",
+              "texto",
+              "Insumo",
+              "app: invfisicomovtos.idinsumo"
+            ],
+            [
+              "existenciaalmacen1",
+              "decimal",
+              "Existencia registrada",
+              "app: invfisicomovtos.existenciaalmacen1"
+            ],
+            [
+              "fisicoalmacen1",
+              "decimal",
+              "Cantidad contada",
+              "app: invfisicomovtos.fisicoalmacen1"
+            ],
+            [
+              "costo",
+              "decimal",
+              "Costo unitario",
+              "app: invfisicomovtos.costo"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_inv_conteo_semanal",
+      "origen": "inv",
+      "dominio": "conteo",
+      "desc": "Conteo semanal en captura y su flujo de revisión.",
+      "tabla": "conteo",
+      "modulo": "Inventarios · Conteo semanal",
+      "grano": "1 fila por semana",
+      "estado": "En desarrollo",
+      "pk": "id",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Conteo semanal",
+          "a": [
+            [
+              "id",
+              "texto",
+              "CS-AAAA-SS",
+              "app: conteo.id"
+            ],
+            [
+              "semana",
+              "entero",
+              "Semana",
+              "app: conteo.semana"
+            ],
+            [
+              "del",
+              "texto",
+              "Inicio",
+              "app: conteo.del"
+            ],
+            [
+              "al",
+              "texto",
+              "Fin",
+              "app: conteo.al"
+            ],
+            [
+              "anio",
+              "entero",
+              "Año",
+              "app: conteo.anio"
+            ],
+            [
+              "estado",
+              "texto",
+              "Borrador, Por revisar, Cerrado, Corregido",
+              "app: conteo.estado"
+            ],
+            [
+              "version",
+              "entero",
+              "Versión",
+              "app: conteo.version"
+            ],
+            [
+              "capturadoPor",
+              "texto",
+              "Rol que capturó",
+              "app: conteo.capturadoPor"
+            ],
+            [
+              "comentario",
+              "texto",
+              "Comentario",
+              "app: conteo.comentario"
+            ],
+            [
+              "enviadoEl",
+              "fecha-hora",
+              "Envío a revisión",
+              "app: conteo.enviadoEl"
+            ],
+            [
+              "cerradoPor",
+              "texto",
+              "Quién cerró",
+              "app: conteo.cerradoPor"
+            ],
+            [
+              "cerradoEl",
+              "fecha-hora",
+              "Cierre",
+              "app: conteo.cerradoEl"
+            ],
+            [
+              "historial",
+              "lista",
+              "Bitácora",
+              "app: conteo.historial"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_inv_conteo_semanal_linea",
+      "origen": "inv",
+      "dominio": "conteo",
+      "desc": "Cantidad capturada por insumo en el conteo semanal.",
+      "tabla": "lineas",
+      "modulo": "Inventarios · Conteo semanal",
+      "grano": "1 fila por conteo e insumo",
+      "estado": "En desarrollo",
+      "pk": "idinsumo",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Línea de conteo",
+          "a": [
+            [
+              "idinsumo",
+              "texto",
+              "Insumo",
+              "app: lineas.idinsumo"
+            ],
+            [
+              "cantidad",
+              "decimal",
+              "Cantidad contada",
+              "app: lineas.cantidad"
+            ],
+            [
+              "sinExistencia",
+              "booleano",
+              "Sin existencia",
+              "app: lineas.sinExistencia"
+            ],
+            [
+              "alerta",
+              "texto",
+              "Alerta marcada",
+              "app: lineas.alerta"
+            ],
+            [
+              "resuelta",
+              "booleano",
+              "Alerta resuelta",
+              "app: lineas.resuelta"
+            ],
+            [
+              "resolucion",
+              "texto",
+              "Resolución",
+              "app: lineas.resolucion"
+            ],
+            [
+              "capturadoPor",
+              "texto",
+              "Rol que capturó",
+              "app: lineas.capturadoPor"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_inv_compra",
+      "origen": "inv",
+      "dominio": "compra",
+      "desc": "Encabezado de compras a proveedor.",
+      "tabla": "compras",
+      "modulo": "Inventarios · Compras",
+      "grano": "1 fila por compra",
+      "estado": "En desarrollo",
+      "pk": "idcompra",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Compra",
+          "a": [
+            [
+              "idcompra",
+              "entero",
+              "Clave",
+              "app: compras.idcompra"
+            ],
+            [
+              "folio",
+              "texto",
+              "Folio",
+              "app: compras.folio"
+            ],
+            [
+              "fechaaplicacion",
+              "fecha-hora",
+              "Entrada al inventario",
+              "app: compras.fechaaplicacion"
+            ],
+            [
+              "idproveedor",
+              "texto",
+              "Proveedor (raw_inv_proveedor)",
+              "app: compras.idproveedor"
+            ],
+            [
+              "foliofactura",
+              "texto",
+              "Folio de factura",
+              "app: compras.foliofactura"
+            ],
+            [
+              "cancelado",
+              "booleano",
+              "Cancelada",
+              "app: compras.cancelado"
+            ],
+            [
+              "subtotal",
+              "decimal",
+              "Subtotal registrado",
+              "app: compras.subtotal"
+            ],
+            [
+              "impuesto1",
+              "decimal",
+              "Impuesto registrado",
+              "app: compras.impuesto1"
+            ],
+            [
+              "total",
+              "decimal",
+              "Total registrado",
+              "app: compras.total"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_inv_compra_partida",
+      "origen": "inv",
+      "dominio": "compra",
+      "desc": "Partidas de cada compra.",
+      "tabla": "comprasmovtos",
+      "modulo": "Inventarios · Compras",
+      "grano": "1 fila por compra e insumo",
+      "estado": "En desarrollo",
+      "pk": "idcompra, idinsumo",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Partida de compra",
+          "a": [
+            [
+              "idcompra",
+              "entero",
+              "Compra (raw_inv_compra)",
+              "app: comprasmovtos.idcompra"
+            ],
+            [
+              "idinsumo",
+              "texto",
+              "Insumo",
+              "app: comprasmovtos.idinsumo"
+            ],
+            [
+              "cantidad",
+              "decimal",
+              "Cantidad",
+              "app: comprasmovtos.cantidad"
+            ],
+            [
+              "costo",
+              "decimal",
+              "Costo unitario",
+              "app: comprasmovtos.costo"
+            ],
+            [
+              "impuesto1",
+              "decimal",
+              "Impuesto registrado",
+              "app: comprasmovtos.impuesto1"
+            ],
+            [
+              "importesinimpuestos",
+              "decimal",
+              "Importe sin impuestos registrado",
+              "app: comprasmovtos.importesinimpuestos"
+            ],
+            [
+              "importeconimpuestos",
+              "decimal",
+              "Importe con impuestos registrado",
+              "app: comprasmovtos.importeconimpuestos"
+            ],
+            [
+              "idalmacen",
+              "texto",
+              "Almacén",
+              "app: comprasmovtos.idalmacen"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_inv_proveedor",
+      "origen": "inv",
+      "dominio": "proveedor",
+      "desc": "Catálogo de proveedores.",
+      "tabla": "proveedores",
+      "modulo": "Inventarios · Compras y Sugerida",
+      "grano": "1 fila por proveedor",
+      "estado": "En desarrollo",
+      "pk": "idproveedor",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Proveedor",
+          "a": [
+            [
+              "idproveedor",
+              "texto",
+              "Clave",
+              "app: proveedores.idproveedor"
+            ],
+            [
+              "nombre",
+              "texto",
+              "Nombre comercial",
+              "app: proveedores.nombre"
+            ],
+            [
+              "giro",
+              "texto",
+              "Giro",
+              "app: proveedores.giro"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_inv_orden_compra",
+      "origen": "inv",
+      "dominio": "orden",
+      "desc": "Órdenes de compra creadas en la app; vacía en el snapshot.",
+      "tabla": "ordenes",
+      "modulo": "Inventarios · Sugerida y Compras",
+      "grano": "1 fila por orden",
+      "estado": "En desarrollo",
+      "pk": "id",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Orden de compra",
+          "a": [
+            [
+              "id",
+              "texto",
+              "OC-0000",
+              "app: ordenes.id"
+            ],
+            [
+              "proveedor",
+              "texto",
+              "Proveedor",
+              "app: ordenes.proveedor"
+            ],
+            [
+              "creada",
+              "fecha",
+              "Pedido",
+              "app: ordenes.creada"
+            ],
+            [
+              "entrega",
+              "fecha",
+              "Entrega",
+              "app: ordenes.entrega"
+            ],
+            [
+              "elaboro",
+              "texto",
+              "Elaboró",
+              "app: ordenes.elaboro"
+            ],
+            [
+              "creo",
+              "texto",
+              "Creó",
+              "app: ordenes.creo"
+            ],
+            [
+              "comentarios",
+              "texto",
+              "Comentarios",
+              "app: ordenes.comentarios"
+            ],
+            [
+              "estado",
+              "texto",
+              "Por aprobar, Pendiente…",
+              "app: ordenes.estado"
+            ],
+            [
+              "origen",
+              "texto",
+              "manual o sugerida",
+              "app: ordenes.origen"
+            ],
+            [
+              "ajuste",
+              "decimal",
+              "Ajuste capturado",
+              "app: ordenes.ajuste"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_inv_orden_compra_partida",
+      "origen": "inv",
+      "dominio": "orden",
+      "desc": "Partidas de cada orden de compra.",
+      "tabla": "ordenes.lineas",
+      "modulo": "Inventarios · Sugerida y Compras",
+      "grano": "1 fila por orden e insumo",
+      "estado": "En desarrollo",
+      "pk": "id_orden, idinsumo",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Partida de orden",
+          "a": [
+            [
+              "id_orden",
+              "texto",
+              "Orden",
+              "app: ordenes.lineas.id_orden"
+            ],
+            [
+              "idinsumo",
+              "texto",
+              "Insumo",
+              "app: ordenes.lineas.idinsumo"
+            ],
+            [
+              "cantidad",
+              "decimal",
+              "Cantidad pedida",
+              "app: ordenes.lineas.cantidad"
+            ],
+            [
+              "unidad",
+              "texto",
+              "Unidad",
+              "app: ordenes.lineas.unidad"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_inv_traspaso",
+      "origen": "inv",
+      "dominio": "traspaso",
+      "desc": "Traspasos entre sucursales.",
+      "tabla": "transferencias",
+      "modulo": "Inventarios · Transferencias",
+      "grano": "1 fila por traspaso",
+      "estado": "En desarrollo",
+      "pk": "id",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Traspaso",
+          "a": [
+            [
+              "id",
+              "texto",
+              "T-0000",
+              "app: transferencias.id"
+            ],
+            [
+              "envia",
+              "texto",
+              "Sucursal que envía",
+              "app: transferencias.envia"
+            ],
+            [
+              "recibe",
+              "texto",
+              "Sucursal que recibe",
+              "app: transferencias.recibe"
+            ],
+            [
+              "estado",
+              "texto",
+              "Solicitada, Enviada, Recibida",
+              "app: transferencias.estado"
+            ],
+            [
+              "creada",
+              "fecha",
+              "Creación",
+              "app: transferencias.creada"
+            ],
+            [
+              "notificada",
+              "fecha",
+              "Notificación",
+              "app: transferencias.notificada"
+            ],
+            [
+              "enviada",
+              "fecha",
+              "Envío",
+              "app: transferencias.enviada"
+            ],
+            [
+              "recibida",
+              "fecha",
+              "Recepción",
+              "app: transferencias.recibida"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_inv_traspaso_partida",
+      "origen": "inv",
+      "dominio": "traspaso",
+      "desc": "Partidas de cada traspaso.",
+      "tabla": "transferencias.lineas",
+      "modulo": "Inventarios · Transferencias",
+      "grano": "1 fila por traspaso y línea",
+      "estado": "En desarrollo",
+      "pk": "id_traspaso",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Partida de traspaso",
+          "a": [
+            [
+              "id_traspaso",
+              "texto",
+              "Traspaso",
+              "app: transferencias.lineas.id_traspaso"
+            ],
+            [
+              "cantidad",
+              "decimal",
+              "Cantidad",
+              "app: transferencias.lineas.cantidad"
+            ],
+            [
+              "unidad",
+              "texto",
+              "Unidad",
+              "app: transferencias.lineas.unidad"
+            ],
+            [
+              "descripcion",
+              "texto",
+              "Artículo",
+              "app: transferencias.lineas.descripcion"
+            ],
+            [
+              "precio",
+              "decimal",
+              "Precio unitario",
+              "app: transferencias.lineas.precio"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_inv_masa_semana",
+      "origen": "inv",
+      "dominio": "masa",
+      "desc": "Cajas y bolsas de masa capturadas por semana.",
+      "tabla": "SEMANAS",
+      "modulo": "Monitoreo de Insumos · Masas",
+      "grano": "1 fila por semana",
+      "estado": "En desarrollo",
+      "pk": "s",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Masa semanal",
+          "a": [
+            [
+              "s",
+              "fecha",
+              "Lunes de la semana",
+              "app: SEMANAS.s"
+            ],
+            [
+              "cajas",
+              "entero",
+              "Cajas",
+              "app: SEMANAS.cajas"
+            ],
+            [
+              "bol",
+              "entero",
+              "Bolsas",
+              "app: SEMANAS.bol"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_app_receta_producto",
+      "origen": "app",
+      "dominio": "receta",
+      "desc": "Productos con receta según el Mix Operación Diaria (pestaña Receta).",
+      "tabla": "RECETAS",
+      "modulo": "Costos · Recetas",
+      "grano": "1 fila por producto",
+      "estado": "En desarrollo",
+      "pk": "id",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Producto con receta",
+          "a": [
+            [
+              "id",
+              "texto",
+              "Clave del producto (raw_pos_producto)",
+              "app: RECETAS.id"
+            ],
+            [
+              "n",
+              "texto",
+              "Nombre en el Mix",
+              "app: RECETAS.n"
+            ],
+            [
+              "c",
+              "texto",
+              "Categoría en el Mix",
+              "app: RECETAS.c"
+            ],
+            [
+              "b",
+              "texto",
+              "Receta base",
+              "app: RECETAS.b"
+            ],
+            [
+              "m",
+              "decimal",
+              "Multiplicador sobre la receta base",
+              "app: RECETAS.m"
+            ],
+            [
+              "mx",
+              "texto",
+              "Referencia en el Mix",
+              "app: RECETAS.mx"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_app_receta_ingrediente",
+      "origen": "app",
+      "dominio": "receta",
+      "desc": "Ingredientes de cada receta según el Mix Operación Diaria.",
+      "tabla": "RECETAS.i · RECETAS.x",
+      "modulo": "Costos · Recetas",
+      "grano": "1 fila por producto e ingrediente",
+      "estado": "En desarrollo",
+      "pk": "idproducto, ingrediente",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Ingrediente de receta",
+          "a": [
+            [
+              "idproducto",
+              "texto",
+              "Producto (raw_app_receta_producto)",
+              "app: RECETAS.i · RECETAS.x.idproducto"
+            ],
+            [
+              "ingrediente",
+              "texto",
+              "Ingrediente",
+              "app: RECETAS.i · RECETAS.x.ingrediente"
+            ],
+            [
+              "cantidad",
+              "decimal",
+              "Cantidad por unidad",
+              "app: RECETAS.i · RECETAS.x.cantidad"
+            ],
+            [
+              "unidad",
+              "texto",
+              "Unidad",
+              "app: RECETAS.i · RECETAS.x.unidad"
+            ],
+            [
+              "costo_unitario",
+              "decimal",
+              "Costo unitario en el Mix",
+              "app: RECETAS.i · RECETAS.x.costo_unitario"
+            ],
+            [
+              "tipo",
+              "texto",
+              "I = insumo, E = elaborado",
+              "app: RECETAS.i · RECETAS.x.tipo"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_app_auditoria",
+      "origen": "app",
+      "dominio": "auditoria",
+      "desc": "Auditorías de franquicia capturadas en la app.",
+      "tabla": "hist",
+      "modulo": "Franquicias y Cumplimiento",
+      "grano": "1 fila por auditoría",
+      "estado": "En desarrollo",
+      "pk": "id",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Auditoría",
+          "a": [
+            [
+              "id",
+              "texto",
+              "AUD-0000",
+              "app: hist.id"
+            ],
+            [
+              "sucursal",
+              "texto",
+              "Sucursal",
+              "app: hist.sucursal"
+            ],
+            [
+              "formato",
+              "texto",
+              "con / sin Drive-Thru",
+              "app: hist.formato"
+            ],
+            [
+              "fecha",
+              "fecha",
+              "Fecha",
+              "app: hist.fecha"
+            ],
+            [
+              "auditor",
+              "texto",
+              "Auditor",
+              "app: hist.auditor"
+            ],
+            [
+              "estado",
+              "texto",
+              "Borrador, Validado",
+              "app: hist.estado"
+            ],
+            [
+              "firma",
+              "texto",
+              "Firma (imagen)",
+              "app: hist.firma"
+            ],
+            [
+              "comprobante",
+              "texto",
+              "Comprobante",
+              "app: hist.comprobante"
+            ],
+            [
+              "resp",
+              "lista",
+              "Respuestas por reactivo",
+              "app: hist.resp"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_app_auditoria_compromiso",
+      "origen": "app",
+      "dominio": "auditoria",
+      "desc": "Compromisos correctivos de una auditoría.",
+      "tabla": "comps",
+      "modulo": "Franquicias y Cumplimiento",
+      "grano": "1 fila por compromiso",
+      "estado": "En desarrollo",
+      "pk": "id",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Compromiso correctivo",
+          "a": [
+            [
+              "id",
+              "texto",
+              "CC-000",
+              "app: comps.id"
+            ],
+            [
+              "aud",
+              "texto",
+              "Auditoría o Manual",
+              "app: comps.aud"
+            ],
+            [
+              "sucursal",
+              "texto",
+              "Sucursal",
+              "app: comps.sucursal"
+            ],
+            [
+              "formato",
+              "texto",
+              "Formato",
+              "app: comps.formato"
+            ],
+            [
+              "reactivo",
+              "texto",
+              "Hallazgo",
+              "app: comps.reactivo"
+            ],
+            [
+              "accion",
+              "texto",
+              "Acción",
+              "app: comps.accion"
+            ],
+            [
+              "resp",
+              "texto",
+              "Responsable",
+              "app: comps.resp"
+            ],
+            [
+              "fechaC",
+              "fecha",
+              "Fecha compromiso",
+              "app: comps.fechaC"
+            ],
+            [
+              "estado",
+              "texto",
+              "Abierto, En proceso, Cerrado",
+              "app: comps.estado"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_app_auditoria_formato",
+      "origen": "app",
+      "dominio": "auditoria",
+      "desc": "Formatos de auditoría con secciones y reactivos.",
+      "tabla": "FORMATOS",
+      "modulo": "Franquicias y Cumplimiento",
+      "grano": "1 fila por formato",
+      "estado": "En desarrollo",
+      "pk": "clave",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Formato de auditoría",
+          "a": [
+            [
+              "clave",
+              "texto",
+              "con / sin",
+              "app: FORMATOS.clave"
+            ],
+            [
+              "nombre",
+              "texto",
+              "Nombre",
+              "app: FORMATOS.nombre"
+            ],
+            [
+              "origen",
+              "texto",
+              "Documento fuente",
+              "app: FORMATOS.origen"
+            ],
+            [
+              "sec",
+              "lista",
+              "Secciones con peso y reactivos",
+              "app: FORMATOS.sec"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_app_sucursal",
+      "origen": "app",
+      "dominio": "sucursal",
+      "desc": "Sucursales de la operación.",
+      "tabla": "SUCS · SUCURSALES",
+      "modulo": "Todos los módulos",
+      "grano": "1 fila por sucursal",
+      "estado": "En desarrollo",
+      "pk": "nombre",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Sucursal",
+          "a": [
+            [
+              "nombre",
+              "texto",
+              "Nombre",
+              "app: SUCS · SUCURSALES.nombre"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_app_rol",
+      "origen": "app",
+      "dominio": "rol",
+      "desc": "Roles de la aplicación.",
+      "tabla": "ROLES",
+      "modulo": "Todos los módulos",
+      "grano": "1 fila por rol",
+      "estado": "En desarrollo",
+      "pk": "clave",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": null,
+      "ent": [
+        {
+          "n": "Rol",
+          "a": [
+            [
+              "clave",
+              "texto",
+              "col, ger, sup, gop, adm",
+              "app: ROLES.clave"
+            ],
+            [
+              "nombre",
+              "texto",
+              "Nombre del rol",
+              "app: ROLES.nombre"
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}
