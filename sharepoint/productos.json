@@ -1,12 +1,16 @@
 {
   "version": {
     "plataforma": "Plataforma de Gestión Operativa",
-    "version": "v1.4",
+    "version": "v1.5",
     "fase": "En desarrollo",
     "build": "1794284509-c5ba",
     "runtime": "0.2.96",
     "capa": "Raw",
     "cambios": [
+      [
+        "v1.5",
+        "Cierre de brechas B-01 a B-08 de Inventarios (D6): columnas nuevas, 2 listas nuevas y campo idx (R-01)"
+      ],
       [
         "v1.4",
         "Orden de compra con varios insumos"
@@ -21,8 +25,8 @@
     "bd": "softrestaurant10 · SQL Server · Soft Restaurant 10",
     "sucursal": "Guanajuato · Río Bravo (piloto), idempresa 1",
     "catalogo_auditoria": "v2026.1",
-    "marketplace": "1.2",
-    "fecha_marketplace": "2026-11-14",
+    "marketplace": "1.3",
+    "fecha_marketplace": "2026-11-22",
     "app_url": "https://claude.ai/artifact/7bCm5CjKA8wK3v1groHQmn",
     "alcance_pos": "Ventas, cortes de caja y catálogo de productos"
   },
@@ -861,7 +865,7 @@
       "filas": null,
       "orden": null,
       "inc": null,
-      "nota": null,
+      "nota": "v1.5 B-05: columnas agregadas ordenConteo, activo, aplicaA, versionCatalogo.",
       "ent": [
         {
           "n": "Insumo",
@@ -925,9 +929,36 @@
               "decimal",
               "Costo promedio registrado",
               "app: insumos.costopromedio"
+            ],
+            [
+              "ordenConteo",
+              "entero",
+              "Orden del insumo en el conteo (B-05)",
+              "app: insumos.ordenConteo"
+            ],
+            [
+              "activo",
+              "booleano",
+              "Insumo activo (B-05)",
+              "app: insumos.activo"
+            ],
+            [
+              "aplicaA",
+              "texto",
+              "Sucursales o formatos a los que aplica (B-05)",
+              "app: insumos.aplicaA"
+            ],
+            [
+              "versionCatalogo",
+              "texto",
+              "Versión del catálogo (B-05)",
+              "app: insumos.versionCatalogo"
             ]
           ]
         }
+      ],
+      "idx": [
+        "activo"
       ]
     },
     {
@@ -1220,7 +1251,7 @@
       "filas": null,
       "orden": null,
       "inc": null,
-      "nota": null,
+      "nota": "v1.5 R-01: índice adicional en fecha.",
       "ent": [
         {
           "n": "Conteo físico",
@@ -1263,6 +1294,9 @@
             ]
           ]
         }
+      ],
+      "idx": [
+        "fecha"
       ]
     },
     {
@@ -1332,7 +1366,7 @@
       "filas": null,
       "orden": null,
       "inc": null,
-      "nota": null,
+      "nota": "v1.5 B-07: columnas agregadas versionCatalogo, enviadoPor, rolCierre, capturadoPersona. v1.5 R-01: índices adicionales en estado, anio, semana.",
       "ent": [
         {
           "n": "Conteo semanal",
@@ -1414,9 +1448,38 @@
               "lista",
               "Bitácora",
               "app: conteo.historial"
+            ],
+            [
+              "versionCatalogo",
+              "texto",
+              "Versión del catálogo con la que se contó (B-07)",
+              "app: conteos.versionCatalogo"
+            ],
+            [
+              "enviadoPor",
+              "texto",
+              "Quien envió el conteo (B-07)",
+              "app: conteos.enviadoPor"
+            ],
+            [
+              "rolCierre",
+              "texto",
+              "Rol con el que se cerró (B-07)",
+              "app: conteos.rolCierre"
+            ],
+            [
+              "capturadoPersona",
+              "texto",
+              "Persona que capturó (capturadoPor conserva el rol) (B-07)",
+              "app: conteos.capturadoPersona"
             ]
           ]
         }
+      ],
+      "idx": [
+        "estado",
+        "anio",
+        "semana"
       ]
     },
     {
@@ -1428,12 +1491,12 @@
       "modulo": "Inventarios · Conteo semanal",
       "grano": "1 fila por conteo e insumo",
       "estado": "En desarrollo",
-      "pk": "idinsumo",
+      "pk": "conteoId, idinsumo",
       "muestra": null,
       "filas": null,
       "orden": null,
       "inc": null,
-      "nota": null,
+      "nota": "v1.5 B-02: columnas agregadas conteoId, periodo. v1.5 B-07: columnas agregadas resueltaPor, capturadoPersona.",
       "ent": [
         {
           "n": "Línea de conteo",
@@ -1479,9 +1542,36 @@
               "texto",
               "Rol que capturó",
               "app: lineas.capturadoPor"
+            ],
+            [
+              "conteoId",
+              "texto",
+              "Id del conteo semanal (raw_inv_conteo_semanal.id_raw) (B-02)",
+              "app: lineas.conteoId"
+            ],
+            [
+              "periodo",
+              "entero",
+              "Periodo AAAASS del conteo (anio x 100 + semana) (B-02)",
+              "app: lineas.periodo"
+            ],
+            [
+              "resueltaPor",
+              "texto",
+              "Quien resolvió la alerta (B-07)",
+              "app: lineas.resueltaPor"
+            ],
+            [
+              "capturadoPersona",
+              "texto",
+              "Persona que capturó (capturadoPor conserva el rol) (B-07)",
+              "app: lineas.capturadoPersona"
             ]
           ]
         }
+      ],
+      "idx": [
+        "periodo"
       ]
     },
     {
@@ -1498,7 +1588,7 @@
       "filas": null,
       "orden": null,
       "inc": null,
-      "nota": null,
+      "nota": "v1.5 R-01: índice adicional en fechaaplicacion.",
       "ent": [
         {
           "n": "Compra",
@@ -1559,6 +1649,9 @@
             ]
           ]
         }
+      ],
+      "idx": [
+        "fechaaplicacion"
       ]
     },
     {
@@ -1687,7 +1780,7 @@
       "filas": null,
       "orden": null,
       "inc": null,
-      "nota": null,
+      "nota": "v1.5 B-04: columnas agregadas recibida, recibidaPor, aprobadaPor, aprobadaEl, foliofactura, evidencia. v1.5 R-01: índices adicionales en estado, creada.",
       "ent": [
         {
           "n": "Orden de compra",
@@ -1751,9 +1844,49 @@
               "decimal",
               "Ajuste capturado",
               "app: ordenes.ajuste"
+            ],
+            [
+              "recibida",
+              "fecha-hora",
+              "Fecha y hora de recepción (B-04)",
+              "app: ordenes.recibida"
+            ],
+            [
+              "recibidaPor",
+              "texto",
+              "Quien recibió (B-04)",
+              "app: ordenes.recibidaPor"
+            ],
+            [
+              "aprobadaPor",
+              "texto",
+              "Quien aprobó (B-04)",
+              "app: ordenes.aprobadaPor"
+            ],
+            [
+              "aprobadaEl",
+              "fecha-hora",
+              "Fecha y hora de aprobación (B-04)",
+              "app: ordenes.aprobadaEl"
+            ],
+            [
+              "foliofactura",
+              "texto",
+              "Folio de factura de la recepción (B-04)",
+              "app: ordenes.foliofactura"
+            ],
+            [
+              "evidencia",
+              "texto",
+              "Referencia a la evidencia de recepción (URL o nombre de archivo) (B-04)",
+              "app: ordenes.evidencia"
             ]
           ]
         }
+      ],
+      "idx": [
+        "estado",
+        "creada"
       ]
     },
     {
@@ -1770,7 +1903,7 @@
       "filas": null,
       "orden": null,
       "inc": null,
-      "nota": null,
+      "nota": "v1.5 B-04: columnas agregadas cantidadRecibida.",
       "ent": [
         {
           "n": "Partida de orden",
@@ -1798,6 +1931,12 @@
               "texto",
               "Unidad",
               "app: ordenes.lineas.unidad"
+            ],
+            [
+              "cantidadRecibida",
+              "decimal",
+              "Cantidad recibida (B-04)",
+              "app: ordenLineas.cantidadRecibida"
             ]
           ]
         }
@@ -1817,7 +1956,7 @@
       "filas": null,
       "orden": null,
       "inc": null,
-      "nota": null,
+      "nota": "v1.5 B-03: columnas agregadas creadaPor, enviadaPor, recibidaPor. v1.5 R-01: índices adicionales en estado, envia, recibe, creada.",
       "ent": [
         {
           "n": "Traspaso",
@@ -1869,9 +2008,33 @@
               "fecha",
               "Recepción",
               "app: transferencias.recibida"
+            ],
+            [
+              "creadaPor",
+              "texto",
+              "Quien creó la solicitud (B-03)",
+              "app: traspasos.creadaPor"
+            ],
+            [
+              "enviadaPor",
+              "texto",
+              "Quien envió (B-03)",
+              "app: traspasos.enviadaPor"
+            ],
+            [
+              "recibidaPor",
+              "texto",
+              "Quien recibió (B-03)",
+              "app: traspasos.recibidaPor"
             ]
           ]
         }
+      ],
+      "idx": [
+        "estado",
+        "envia",
+        "recibe",
+        "creada"
       ]
     },
     {
@@ -1883,12 +2046,12 @@
       "modulo": "Inventarios · Transferencias",
       "grano": "1 fila por traspaso y línea",
       "estado": "En desarrollo",
-      "pk": "id_traspaso",
+      "pk": "id_traspaso, renglon",
       "muestra": null,
       "filas": null,
       "orden": null,
       "inc": null,
-      "nota": null,
+      "nota": "v1.5 B-03: columnas agregadas renglon, idinsumo.",
       "ent": [
         {
           "n": "Partida de traspaso",
@@ -1922,6 +2085,18 @@
               "decimal",
               "Precio unitario",
               "app: transferencias.lineas.precio"
+            ],
+            [
+              "renglon",
+              "entero",
+              "Número de renglón dentro del traspaso (B-03)",
+              "app: traspasoLineas.renglon"
+            ],
+            [
+              "idinsumo",
+              "texto",
+              "Insumo del catálogo, vacío si el artículo es libre (B-03)",
+              "app: traspasoLineas.idinsumo"
             ]
           ]
         }
@@ -2301,7 +2476,7 @@
       "filas": null,
       "orden": null,
       "inc": null,
-      "nota": null,
+      "nota": "v1.5 B-06: columnas agregadas razonSocial, entidad, activa.",
       "ent": [
         {
           "n": "Sucursal",
@@ -2311,9 +2486,30 @@
               "texto",
               "Nombre",
               "app: SUCS · SUCURSALES.nombre"
+            ],
+            [
+              "razonSocial",
+              "texto",
+              "Razón social (B-06)",
+              "app: sucursales.razonSocial"
+            ],
+            [
+              "entidad",
+              "texto",
+              "Estado de la república (B-06)",
+              "app: sucursales.entidad"
+            ],
+            [
+              "activa",
+              "booleano",
+              "Sucursal activa (B-06)",
+              "app: sucursales.activa"
             ]
           ]
         }
+      ],
+      "idx": [
+        "activa"
       ]
     },
     {
@@ -2346,6 +2542,148 @@
               "texto",
               "Nombre del rol",
               "app: ROLES.nombre"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_inv_masa_mezcla",
+      "origen": "inv",
+      "dominio": "masa",
+      "desc": "Captura diaria de Control de Masa: una fila por mezcla con las onzas por tamaño (B-01).",
+      "tabla": "InvControlMasa",
+      "modulo": "Inventarios · Control de Masa",
+      "grano": "1 fila por día y mezcla",
+      "estado": "En desarrollo",
+      "pk": "fecha, mezcla",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": "Lista nueva v1.5. Cierra B-01. Captura (la escribe Power Apps). Complementa raw_inv_masa_semana (grano semanal). La llave fecha+mezcla supone un registro por día; C-8 (¿por día o por turno?) sigue abierto: si se decide por turno, se agrega turno a la llave.",
+      "ent": [
+        {
+          "n": "Mezcla de masa",
+          "a": [
+            [
+              "fecha",
+              "fecha",
+              "Día de la captura (B-01)",
+              "app: InvControlMasa.fecha"
+            ],
+            [
+              "mezcla",
+              "entero",
+              "Número de mezcla, 1 a 10 (B-01)",
+              "app: InvControlMasa.mezcla"
+            ],
+            [
+              "oz17",
+              "entero",
+              "Oz 17, entero >= 0 (B-01)",
+              "app: InvControlMasa.oz17"
+            ],
+            [
+              "oz10",
+              "entero",
+              "Oz 10, entero >= 0 (B-01)",
+              "app: InvControlMasa.oz10"
+            ],
+            [
+              "oz5",
+              "entero",
+              "Oz 5, entero >= 0 (B-01)",
+              "app: InvControlMasa.oz5"
+            ],
+            [
+              "capturadoPor",
+              "texto",
+              "Persona que capturó (B-01)",
+              "app: InvControlMasa.capturadoPor"
+            ],
+            [
+              "capturadoEl",
+              "fecha-hora",
+              "Fecha y hora de captura (B-01)",
+              "app: InvControlMasa.capturadoEl"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_inv_conteo_semanal_historial",
+      "origen": "inv",
+      "dominio": "conteo",
+      "desc": "Bitácora de correcciones de un conteo semanal: una fila por corrección (B-08).",
+      "tabla": "InvConteoHistorial",
+      "modulo": "Inventarios · Conteo semanal",
+      "grano": "1 fila por conteo, versión e insumo",
+      "estado": "En desarrollo",
+      "pk": "conteoId, version, idinsumo",
+      "muestra": null,
+      "filas": null,
+      "orden": null,
+      "inc": null,
+      "nota": "Lista nueva v1.5. Cierra B-08. Captura. La columna historial de raw_inv_conteo_semanal se conserva sin cambios. Esta lista es la bitácora que manda: la columna raw_inv_conteo_semanal.historial ya no se escribe.",
+      "ent": [
+        {
+          "n": "Corrección de conteo",
+          "a": [
+            [
+              "conteoId",
+              "texto",
+              "Id del conteo semanal (B-08)",
+              "app: InvConteoHistorial.conteoId"
+            ],
+            [
+              "version",
+              "entero",
+              "Versión resultante del conteo (B-08)",
+              "app: InvConteoHistorial.version"
+            ],
+            [
+              "idinsumo",
+              "texto",
+              "Insumo corregido (B-08)",
+              "app: InvConteoHistorial.idinsumo"
+            ],
+            [
+              "antes",
+              "decimal",
+              "Cantidad antes (B-08)",
+              "app: InvConteoHistorial.antes"
+            ],
+            [
+              "despues",
+              "decimal",
+              "Cantidad después (B-08)",
+              "app: InvConteoHistorial.despues"
+            ],
+            [
+              "motivo",
+              "texto",
+              "Motivo de la corrección (B-08)",
+              "app: InvConteoHistorial.motivo"
+            ],
+            [
+              "por",
+              "texto",
+              "Quien corrigió (B-08)",
+              "app: InvConteoHistorial.por"
+            ],
+            [
+              "el",
+              "fecha-hora",
+              "Fecha y hora de la corrección (B-08)",
+              "app: InvConteoHistorial.el"
+            ],
+            [
+              "rol",
+              "texto",
+              "Rol de quien corrigió (B-08)",
+              "app: InvConteoHistorial.rol"
             ]
           ]
         }
