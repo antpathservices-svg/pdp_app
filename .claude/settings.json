@@ -1,5 +1,8 @@
 {
   "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "PDP_ETL_DEFAULT_ARCHITECTURE": "raw_silver_gold",
+    "PDP_ETL_POS_READ_ONLY": "1",
+    "PDP_ETL_WRITE_DESTINATIONS": "parquet,sharepoint_publicacion"
   }
 }
