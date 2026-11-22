@@ -1,0 +1,5 @@
+EditorState:
+  ScreensOrder:
+    - scrInventarios
+    - scrInventarios_General
+    - scrInventarios_ControlMasa

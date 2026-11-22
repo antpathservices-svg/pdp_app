@@ -28,6 +28,6 @@ El MCP no agrega orígenes de datos: las listas de SharePoint se conectan en Stu
 
 | App | Entorno | App id | Estado |
 |---|---|---|---|
-| PDP Inventarios (dev) | `Default-5a7df1b6-a688-4634-b639-e2baf07e8e53` (franquiciasab) | `88495839-4776-4c23-a944-a2cb95e21ae2` | Creada en blanco; pendiente conectar el MCP |
+| PDP Inventarios (dev) | `Default-5a7df1b6-a688-4634-b639-e2baf07e8e53` (franquiciasab) | `88495839-4776-4c23-a944-a2cb95e21ae2` | MCP conectado (2026-11-22). 42 listas de DEPRITAM conectadas como origen de datos (verificado contra `productos.json`); app en blanco, sin pantallas |
 
 Al cerrar cada sesión de trabajo: `pac canvas download` y commit de los `.pa.yaml` en `apps/<app>/src/`.
