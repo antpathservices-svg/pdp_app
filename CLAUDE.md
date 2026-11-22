@@ -48,6 +48,17 @@ Ramas: `main` (prd) y `dev`.
 - **Pipelines:** consultas de solo lectura sobre cuentas cerradas, con tope de tiempo y duración registrada. Corrida diaria; corte del día operativo en el turno 3, que cruza la medianoche.
 - Diseño visual replicable en Power Apps. Todo cambio de diseño se refleja en las specs DPZ-UX-0X **y** en el prototipo.
 
+## Equipo ETL POS
+
+Para cualquier desarrollo de extracción, transformación o carga desde `softrestaurant10.dbo`, usa el equipo especializado:
+
+- `etl-pos-arquitecto`: diseña el plan y asigna archivos sin implementar.
+- `etl-pos-extractor`: implementa SQL y el extractor Python de solo lectura.
+- `etl-pos-transformador`: implementa la ejecución, raw/silver/gold, Parquet y publicación.
+- `etl-pos-validador`: prueba resultados, idempotencia, cargas incrementales y límites operativos.
+- `supervisor-evaluador`: revisión bloqueante final.
+
+Regla de coordinación: una sola persona implementa por área y ninguna modifica fuera de sus archivos asignados. El coordinador separa archivos antes de comenzar para evitar conflictos.
 ## Setup de la máquina de desarrollo (Windows)
 
 1. `winget install Microsoft.DotNet.SDK.10`
