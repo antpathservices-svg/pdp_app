@@ -85,11 +85,7 @@ class PosExtractor:
             return ExtractionResult(product_id, 0, 0.0, None)
 
         started = time.monotonic()
-        frame = cx.read_sql(
-            conn=self.sql_uri,
-            query=query,
-            return_type="polars",
-        )
+        frame = self._read_sql(query)
         duration = time.monotonic() - started
 
         if not isinstance(frame, pl.DataFrame):
@@ -119,6 +115,43 @@ class PosExtractor:
             duration_seconds=duration,
             output_path=output_path,
         )
+
+    def _read_sql(self, query: str) -> pl.DataFrame:
+        if self.sql_uri.startswith("integrated:"):
+            import pyodbc
+
+            server = self.sql_uri.removeprefix("integrated:")
+            connection_string = (
+                "DRIVER={ODBC Driver 18 for SQL Server};"
+                f"SERVER={server};DATABASE=softrestaurant10;"
+                "Trusted_Connection=yes;"
+                "TrustServerCertificate=yes;"
+            )
+            with pyodbc.connect(
+                connection_string,
+                timeout=self.query_timeout_seconds,
+            ) as connection:
+                cursor = connection.cursor()
+                cursor.execute(query)
+                columns = [column[0] for column in cursor.description]
+                rows = cursor.fetchall()
+            if not rows:
+                return pl.DataFrame(schema={column: pl.Null for column in columns})
+            return pl.DataFrame(
+                {
+                    column: [row[index] for row in rows]
+                    for index, column in enumerate(columns)
+                }
+            )
+
+        frame = cx.read_sql(
+            conn=self.sql_uri,
+            query=query,
+            return_type="polars",
+        )
+        if isinstance(frame, pl.DataFrame):
+            return frame
+        return pl.from_pandas(frame)
 
     def raw_output_path(
         self,

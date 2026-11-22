@@ -27,6 +27,12 @@ Ejecutar todos los productos POS:
 .venv\Scripts\python -m pipelines.pos_etl --from 2026-10-29T00:00:00 --to 2026-10-30T00:00:00
 ```
 
+Ejecutar con autenticación integrada contra una instancia local de Windows:
+
+```powershell
+py -3 -m pipelines.pos_etl --sql-uri 'integrated:localhost\NATIONALSOFT' --from 2026-11-21T00:00:00 --to 2026-11-22T00:00:00
+```
+
 Ejecutar una familia:
 
 ```powershell

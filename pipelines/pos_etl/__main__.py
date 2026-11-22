@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import replace
 from datetime import datetime
 
 from .config import PosEtlConfig
@@ -14,6 +15,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--product", default="raw_pos_*", help="Patrón de producto")
     parser.add_argument("--lake-root", help="Raíz local o ruta del lago")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--sql-uri",
+        help="URI SQL; use integrated:SERVIDOR para autenticación integrada",
+    )
     return parser.parse_args()
 
 
@@ -25,8 +30,10 @@ def main() -> int:
         run_from=run_from,
         run_to=run_to,
         lake_root=args.lake_root,
-        allow_missing_sql_uri=args.dry_run,
+        allow_missing_sql_uri=args.dry_run or bool(args.sql_uri),
     )
+    if args.sql_uri:
+        config = replace(config, sql_uri=args.sql_uri)
     summary = run_pos_etl(
         config,
         product_pattern=args.product,

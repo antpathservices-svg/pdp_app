@@ -10,3 +10,4 @@ msal>=1.28           # autenticación de Microsoft Graph (publicación a SharePo
 requests>=2.31       # llamadas a Microsoft Graph
 python-dotenv>=1.0   # credenciales en .env (fuera del repo)
 pytest>=8.0          # pruebas del ETL
+pyodbc>=5.1          # conexión ODBC integrada a SQL Server
