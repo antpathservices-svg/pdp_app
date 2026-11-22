@@ -9,3 +9,4 @@ obstore>=0.4         # escritura a Azure Blob / Azurite / OCI
 msal>=1.28           # autenticación de Microsoft Graph (publicación a SharePoint)
 requests>=2.31       # llamadas a Microsoft Graph
 python-dotenv>=1.0   # credenciales en .env (fuera del repo)
+pytest>=8.0          # pruebas del ETL
