@@ -5,12 +5,14 @@
 
 .DESCRIPTION
     Una lista por producto de datos y una columna por atributo, con el mismo mapeo de tipos que el
-    Marketplace de datos. Es idempotente: si la lista o la columna ya existen, no las vuelve a crear,
+    Marketplace de datos. Es idempotente: si la lista, la columna o el índice ya existen, no los vuelve a crear,
     así que se puede correr varias veces y en cada sucursal.
 
     - Atributo con nombre reservado de SharePoint (ID, Title, Version, Order…): el nombre interno
       lleva el sufijo _raw y el nombre visible se conserva.
-    - Columnas de la llave y de carga incremental: indexadas (salvo las de varias líneas).
+    - Columnas de la llave (pk), de carga incremental (inc) y del campo idx: indexadas (salvo las de varias líneas).
+      idx es una lista de columnas adicionales a indexar (estado, fechas, envia/recibe). Si la columna ya existe
+      sin índice, se indexa. Máximo 20 columnas indexadas por lista (límite de SharePoint): si se excede, falla.
     - Capa raw: ninguna columna se fuerza obligatoria ni única; Title deja de ser obligatoria.
 
 .PARAMETER SiteUrl
@@ -23,7 +25,8 @@
     Ids de productos a desplegar (admite comodines). Por omisión, todos.
 
 .PARAMETER Plan
-    No se conecta a SharePoint: solo muestra las listas y columnas que crearía.
+    No se conecta a SharePoint: muestra las listas, columnas e índices que crearía en un sitio vacío
+    (y valida el límite de 20 índices por lista).
 
 .EXAMPLE
     ./Deploy-Listas.ps1 -Plan
@@ -43,7 +46,8 @@ $ErrorActionPreference = 'Stop'
 
 $Reservados = 'id', 'title', 'version', 'order', 'created', 'modified', 'author', 'editor',
               'contenttype', 'attachments', 'edit', 'linktitle', 'docicon', 'path'
-$Largos     = 'referencia', 'comentarios', 'comentario', 'historial', 'firma', 'comprobante',
+$MaxIndices = 20
+$Largos     = 'referencia', 'motivo', 'evidencia', 'comentarios', 'comentario', 'historial', 'firma', 'comprobante',
               'accion', 'reactivo', 'resolucion'
 
 function Get-Columna {
@@ -51,7 +55,9 @@ function Get-Columna {
     $nombre, $tipo = $Atributo[0], $Atributo[1]
     $interno = if ($Reservados -contains $nombre.ToLower()) { "${nombre}_raw" } else { $nombre }
     $llave   = $Producto.pk -split ',' | ForEach-Object Trim
-    $indexar = ($llave -contains $nombre) -or ($nombre -eq $Producto.inc)
+    $adicional = @($Producto.idx) -contains $nombre
+    $porLlave  = ($llave -contains $nombre) -or ($nombre -eq $Producto.inc)
+    $indexar   = $porLlave -or $adicional
     $base    = "Name=`"$interno`" StaticName=`"$interno`" DisplayName=`"$nombre`""
 
     $xml = switch ($tipo) {
@@ -66,9 +72,22 @@ function Get-Columna {
         }
     }
     $indexable = $xml -notmatch 'Type="Note"'
+    if ($adicional -and -not $indexable) { throw "$($Producto.id): la columna '$nombre' es de varias líneas y SharePoint no la puede indexar (idx)." }
     $indexar = $indexar -and $indexable
     if ($indexar) { $xml += ' Indexed="TRUE"' }
-    [pscustomobject]@{ Atributo = $nombre; Interno = $interno; Tipo = $tipo; Indexada = $indexar; Xml = "$xml />" }
+    [pscustomobject]@{ Atributo = $nombre; Interno = $interno; Tipo = $tipo; TipoSP = ($xml -replace '^<Field Type="(\w+)".*$','$1'); Indexada = $indexar; Motivo = $(if ($porLlave) { 'pk/inc' } elseif ($adicional) { 'idx' } else { '' }); Xml = "$xml />" }
+}
+
+function Get-ColumnasIndexadas {
+    # Valida idx contra los atributos y el tope de índices; devuelve las columnas de un producto.
+    param($Producto)
+    $cols = @($Producto.ent[0].a | ForEach-Object { Get-Columna $Producto $_ })
+    foreach ($i in @($Producto.idx)) {
+        if ($i -and -not ($cols.Atributo -contains $i)) { throw "$($Producto.id): idx menciona '$i', que no es un atributo del producto." }
+    }
+    $n = @($cols | Where-Object Indexada).Count
+    if ($n -gt $MaxIndices) { throw "$($Producto.id): $n columnas indexadas en la definición; SharePoint permite máximo $MaxIndices por lista. Quita columnas de idx." }
+    , $cols
 }
 
 $Productos = $Productos -split ',' | ForEach-Object Trim | Where-Object { $_ }   # pwsh -File pasa 'a,b' como un solo texto
@@ -80,9 +99,10 @@ Write-Host "Definición $($def.version.version) · $(@($seleccion).Count) listas
 
 if ($Plan) {
     foreach ($p in $seleccion) {
-        $cols = $p.ent[0].a | ForEach-Object { Get-Columna $p $_ }
-        Write-Host "`n$($p.id)  ($($p.origen) · llave: $($p.pk))" -ForegroundColor Yellow
-        $cols | Format-Table Atributo, Interno, Tipo, Indexada -AutoSize | Out-String | Write-Host
+        $cols = Get-ColumnasIndexadas $p
+        $nIdx = @($cols | Where-Object Indexada).Count
+        Write-Host "`n$($p.id)  ($($p.origen) · llave: $($p.pk) · idx: $(@($p.idx) -join ', ') · $($cols.Count) columnas, $nIdx/$MaxIndices indexadas)" -ForegroundColor Yellow
+        $cols | Format-Table Atributo, Interno, Tipo, Indexada, Motivo -AutoSize | Out-String | Write-Host
     }
     return
 }
@@ -91,7 +111,7 @@ if (-not (Get-Module -ListAvailable PnP.PowerShell)) { throw 'Falta el módulo P
 Connect-PnPOnline -Url $SiteUrl -ClientId $ClientId -Interactive
 
 foreach ($p in $seleccion) {
-    $cols = $p.ent[0].a | ForEach-Object { Get-Columna $p $_ }
+    $cols = Get-ColumnasIndexadas $p
     $lista = Get-PnPList -Identity "Lists/$($p.id)" -ErrorAction SilentlyContinue
     if (-not $lista) {
         Write-Host "+ lista $($p.id)" -ForegroundColor Green
@@ -102,11 +122,32 @@ foreach ($p in $seleccion) {
     }
 
     # SharePoint puede codificar el nombre interno (p. ej. 'c' queda como '_x0063_'); StaticName conserva el original.
-    $existentes = Get-PnPField -List $p.id | ForEach-Object { $_.InternalName; $_.StaticName }
-    foreach ($c in $cols) {
-        if ($existentes -contains $c.Interno) { continue }
+    $campos     = @(Get-PnPField -List $p.id -Includes Indexed)
+    $existentes = $campos | ForEach-Object { $_.InternalName; $_.StaticName }
+    $nuevas     = @($cols | Where-Object { $existentes -notcontains $_.Interno })
+
+    # Columnas que ya existen y deben quedar indexadas pero no lo están.
+    $porIndexar = @()
+    foreach ($c in @($cols | Where-Object { $_.Indexada -and $existentes -contains $_.Interno })) {
+        $campo = $campos | Where-Object { $_.InternalName -eq $c.Interno -or $_.StaticName -eq $c.Interno } | Select-Object -First 1
+        if (-not $campo.Indexed) { $porIndexar += [pscustomobject]@{ Columna = $c; Campo = $campo } }
+    }
+
+    # Tope de SharePoint: indexadas actuales + columnas nuevas indexadas + índices por agregar.
+    $total = @($campos | Where-Object Indexed).Count + @($nuevas | Where-Object Indexada).Count + $porIndexar.Count
+    if ($total -gt $MaxIndices) { throw "$($p.id): quedarían $total columnas indexadas; SharePoint permite máximo $MaxIndices por lista. Revisa idx en productos.json o los índices que ya tiene la lista." }
+
+    foreach ($c in @($cols | Where-Object { $existentes -contains $_.Interno })) {
+        $campo = $campos | Where-Object { $_.InternalName -eq $c.Interno -or $_.StaticName -eq $c.Interno } | Select-Object -First 1
+        if ($campo.TypeAsString -ne $c.TipoSP) { Write-Warning "$($p.id).$($c.Interno): la columna existente es $($campo.TypeAsString) y la definición pide $($c.TipoSP). No se cambia." }
+    }
+    foreach ($c in $nuevas) {
         Write-Host "  + columna $($c.Interno) ($($c.Tipo)$(if ($c.Indexada) { ', indexada' }))" -ForegroundColor Green
         Add-PnPFieldFromXml -List $p.id -FieldXml $c.Xml | Out-Null
+    }
+    foreach ($x in $porIndexar) {
+        Write-Host "  + índice $($x.Columna.Interno)" -ForegroundColor Green
+        Set-PnPField -List $p.id -Identity $x.Campo.InternalName -Values @{ Indexed = $true } | Out-Null
     }
 
     if ($p.filas -gt 5000) {

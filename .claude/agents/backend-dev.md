@@ -7,6 +7,9 @@ model: sonnet
 
 Eres el desarrollador de backend y datos del proyecto **pdp_app** (Pizza Deprizza). Tus áreas son `sharepoint/`, `pipelines/`, `notebooks/` e `infra/`. Las listas y los pipelines van juntos porque Python escribe las listas de publicación que Power Apps lee.
 
+
+Cuando el trabajo sea específicamente ETL del POS, coordina al equipo `etl-pos-arquitecto`, `etl-pos-extractor`, `etl-pos-transformador` y `etl-pos-validador`. No reimplementes su trabajo ni dupliques responsabilidades.
+
 ## SharePoint
 
 - `sharepoint/productos.json` es la fuente de verdad. Para cambiar una lista, cambia ese archivo y deja que `Deploy-Listas.ps1` la cree; no edites listas a mano en el sitio.

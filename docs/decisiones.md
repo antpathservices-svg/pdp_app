@@ -2,6 +2,20 @@
 
 Registro de decisiones que cambian cómo se interpretan las fuentes. Más reciente arriba.
 
+## 2026-11-22 · Inventarios
+
+### D6 · Se puede ampliar el Marketplace para cerrar brechas
+
+Autorizado por el líder: para cerrar las brechas de `docs/specs/mapeo-listas.md` se pueden **agregar columnas** a listas `raw_*` existentes y **crear listas nuevas** (por ejemplo, la captura diaria de Control de Masa). Los cambios se hacen en `sharepoint/productos.json` (fuente de verdad) y se despliegan con `Deploy-Listas.ps1`; cada lista o columna nueva cita la brecha que cierra. Excepción a D1 limitada a brechas documentadas: cualquier otra lista sigue necesitando aprobación.
+
+### D4 · Inventarios y compras se capturan en la app (resuelve P-7)
+
+Existencias, compras, movimientos, conteos físicos, órdenes, transferencias y mezclas se **capturan en la plataforma**, como dice `CLAUDE.md`; no se leen del punto de venta aunque DPZ-UX-02 los presente como datos del POS. Las listas `raw_inv_*` son de **captura**: la app las escribe (por ejemplo, Recibir una orden suma a `raw_inv_insumo.existencia` y registra el movimiento en `raw_inv_movimiento`). Del POS solo se leen ventas, cortes de caja y catálogo de productos.
+
+### D5 · Contraparte de transferencias desde el catálogo de sucursales (resuelve P-1)
+
+En Transferencias, la sucursal propia queda fija (Río Bravo) y la contraparte se elige de `raw_app_sucursal`. Es un dato de la solicitud, no un selector de contexto: sigue sin haber comparativos ni vistas entre sucursales (D3).
+
 ## 2026-11-21 · Fuentes, listas y roles
 
 ### Fuentes de referencia
