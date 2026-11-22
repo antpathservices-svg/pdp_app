@@ -22,7 +22,7 @@ Las listas se escriben con el nombre `raw_*` de `sharepoint/productos.json`. Ent
 | INV-12 | scrInventarios_General › Existencias | raw_inv_insumo | pendiente |
 | INV-13 | scrInventarios_General › Existencias | — | pendiente |
 | INV-14 | scrInventarios_General › Existencias | raw_inv_orden_compra, raw_inv_orden_compra_partida | pendiente |
-| INV-15 | scrInventarios_General › Existencias | raw_inv_orden_compra, raw_inv_orden_compra_partida; raw_inv_insumo; raw_inv_movimiento (B-04) | bloqueado (B-04) |
+| INV-15 | scrInventarios_General › Existencias | raw_inv_orden_compra, raw_inv_orden_compra_partida; raw_inv_insumo; raw_inv_movimiento (B-04, P-9) | bloqueado (B-04, P-9) |
 | INV-16 | scrInventarios_General › Existencias | raw_inv_insumo; raw_inv_insumo_categoria; raw_inv_almacen | pendiente |
 | INV-17 | scrInventarios_General › Existencias | raw_inv_insumo | pendiente |
 | INV-18 | scrInventarios_General › Existencias | raw_inv_masa_semana (parcial) (B-10, B-01) | bloqueado (B-10, B-01) |
@@ -32,19 +32,19 @@ Las listas se escriben con el nombre `raw_*` de `sharepoint/productos.json`. Ent
 | INV-22 | Diálogo Orden de compra (scrInventarios_General) | raw_inv_orden_compra, raw_inv_orden_compra_partida | pendiente |
 | INV-23 | Diálogo Orden de compra (scrInventarios_General) | raw_inv_orden_compra, raw_inv_orden_compra_partida | pendiente |
 | INV-24 | Diálogo Orden de compra (scrInventarios_General) | (borrador en memoria) | pendiente |
-| INV-25 | scrInventarios_General › Compras | raw_inv_compra; raw_inv_proveedor | pendiente |
-| INV-26 | scrInventarios_General › Compras | raw_inv_compra; raw_inv_proveedor | pendiente |
-| INV-27 | scrInventarios_General › Compras | raw_inv_compra_partida; raw_inv_insumo | pendiente |
+| INV-25 | scrInventarios_General › Compras | raw_inv_compra; raw_inv_proveedor (P-9) | pendiente |
+| INV-26 | scrInventarios_General › Compras | raw_inv_compra; raw_inv_proveedor (P-9) | pendiente |
+| INV-27 | scrInventarios_General › Compras | raw_inv_compra_partida; raw_inv_insumo (P-9) | pendiente |
 | INV-28 | scrInventarios_General › Movimientos | raw_inv_movimiento; raw_inv_movimiento_concepto; raw_inv_insumo | pendiente |
 | INV-29 | scrInventarios_General › Movimientos | raw_inv_traspaso; raw_inv_traspaso_partida | pendiente |
-| INV-30 | scrInventarios_General › Movimientos | raw_inv_traspaso; raw_inv_movimiento; raw_inv_insumo (B-03) | bloqueado (B-03) |
-| INV-31 | scrInventarios_General › Conteos | raw_inv_conteo_fisico; raw_inv_conteo_fisico_partida; raw_inv_insumo | pendiente |
+| INV-30 | scrInventarios_General › Movimientos | raw_inv_traspaso; raw_inv_movimiento; raw_inv_insumo (B-03, P-10) | bloqueado (B-03, P-10) |
+| INV-31 | scrInventarios_General › Conteos | raw_inv_conteo_fisico; raw_inv_conteo_fisico_partida; raw_inv_insumo (P-9) | pendiente |
 | INV-32 | scrInventarios_General › Conteos | — | pendiente |
 | INV-33 | scrInventarios_ControlMasa | sin lista (B-01, P-2) | bloqueado (B-01, P-2) |
 | INV-34 | scrInventarios_ControlMasa | sin lista (B-01, P-2) | bloqueado (B-01, P-2) |
 | INV-35 | scrInventarios_ControlMasa | sin lista (B-01, P-2) | bloqueado (B-01, P-2) |
 | INV-36 | scrInventarios_ControlMasa | sin lista (B-01, P-2) | bloqueado (B-01, P-2) |
-| INV-37 | scrInventarios_Transferencia | raw_app_sucursal; raw_inv_traspaso (B-06) | bloqueado (B-06) |
+| INV-37 | scrInventarios_Transferencia | raw_app_sucursal; raw_inv_traspaso (B-06) | pendiente (B-06: sin filtro de activas) |
 | INV-38 | scrInventarios_Transferencia | raw_inv_insumo; raw_inv_traspaso_partida | pendiente |
 | INV-39 | scrInventarios_Transferencia | raw_inv_traspaso_partida | pendiente |
 | INV-40 | scrInventarios_Transferencia | raw_inv_traspaso; raw_inv_traspaso_partida (B-03) | bloqueado (B-03) |
@@ -65,8 +65,8 @@ Las listas se escriben con el nombre `raw_*` de `sharepoint/productos.json`. Ent
 | INV-55 | scrInventarios_ConteoRevision | raw_inv_conteo_semanal_linea (B-02) | bloqueado (B-02) |
 | INV-56 | scrInventarios_ConteoRevision | raw_inv_conteo_semanal (B-07) | bloqueado (B-07) |
 | INV-57 | scrInventarios_ConteoCierre | raw_inv_conteo_semanal; raw_inv_conteo_semanal_linea (B-02) | bloqueado (B-02) |
-| INV-58 | scrInventarios_ConteoCierre | raw_inv_conteo_semanal_linea; raw_inv_movimiento; raw_inv_insumo (B-02, B-09) | bloqueado (B-02, B-09) |
-| INV-59 | scrInventarios_ConteoCierre | raw_inv_conteo_semanal (B-07, B-02) | bloqueado (B-07, B-02) |
+| INV-58 | scrInventarios_ConteoCierre | raw_inv_conteo_semanal_linea; raw_inv_movimiento; raw_inv_insumo (B-02, B-09, P-10) | bloqueado (B-02, B-09, P-10) |
+| INV-59 | scrInventarios_ConteoCierre | raw_inv_conteo_semanal (B-07, B-02, P-9) | bloqueado (B-07, B-02, P-9) |
 | INV-60 | scrInventarios_ConteoCierre | raw_inv_conteo_semanal (historial); raw_inv_conteo_semanal_linea (B-08, B-02) | bloqueado (B-08, B-02) |
 | INV-61 | Todas | raw_inv_insumo | pendiente |
 | INV-62 | Todas | raw_inv_insumo | pendiente |

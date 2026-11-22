@@ -18,7 +18,7 @@ Alcance de esta versión: solo el módulo Inventarios y Compras. Las listas de V
 - **Una lista por sucursal.** Ninguna lista `raw_inv_*` tiene columna `Sucursal` ni `idempresa` (sí existen en otros dominios: `raw_pos_*.idempresa`, `raw_app_auditoria*.sucursal`). El kit de activación crea las mismas listas en el sitio de cada sucursal (UX02 §03, bloque «Listas de captura en SharePoint»). Por eso se omite el filtro `Sucursal = varSucursal` de las fórmulas de la spec (decisión D3: una sola sucursal, Guanajuato · Río Bravo).
 - **Nombres internos.** Atributos reservados de SharePoint llevan sufijo `_raw` (`Deploy-Listas.ps1`, lista `$Reservados`). En este módulo: `id` → `id_raw` (en `raw_inv_insumo_categoria`, `raw_inv_conteo_semanal`, `raw_inv_orden_compra`, `raw_inv_traspaso`) y `version` → `version_raw` (en `raw_inv_conteo_semanal`). El nombre visible no cambia. En `raw_app_receta_producto` la columna `c` se guardó como `_x0063_` (`sharepoint/README.md`, sección Despliegues).
 - **Tipos.** Todo texto es una línea de 255 caracteres salvo `referencia`, `comentarios`, `comentario`, `historial` y `resolucion` (varias líneas). `estado` y `alerta` son texto, no columnas de elección: la validación de valores la hace la app.
-- **Captura / lectura / publicación.** CLAUDE.md: una lista es de captura (la escribe la app) o de publicación (la escribe Python por Graph), nunca de las dos. La columna «Uso» de cada tabla indica cómo la usa esta app. **Origen (D4):** todas las `raw_inv_*` son de captura y la app las escribe (existencia, compras, movimientos, conteos físicos, órdenes, transferencias, mezclas); del POS solo se leen ventas, cortes y catálogo de productos. UX02 §03 «Fuentes» las presenta como publicación del POS: esa parte de la spec se sustituye (tabla 1.1). La columna «Uso» de cada tabla indica solo lo que **esta spec** hace con la lista. El JSON no declara si una lista es de captura o de publicación: lo que sigue sale de la spec y del prototipo y debe confirmarlo backend-dev.
+- **Captura / lectura / publicación.** CLAUDE.md: una lista es de captura (la escribe la app) o de publicación (la escribe Python por Graph), nunca de las dos. La columna «Uso» de cada tabla indica cómo la usa esta app. **Origen (D4):** todas las `raw_inv_*` son de captura y la app las escribe (existencia, compras, movimientos, conteos físicos, órdenes, transferencias, mezclas); del POS solo se leen ventas, cortes y catálogo de productos. UX02 §03 «Fuentes» las presenta como publicación del POS: esa parte de la spec se sustituye (tabla 1.1). La columna «Uso» de cada tabla indica solo lo que **esta spec** hace con la lista. Por D4 el JSON no necesita declararlo: todas las `raw_inv_*` son de captura.
 - **Derivado.** Columna que la spec trae calculada o por unión y que `raw_*` no guarda (CLAUDE.md: raw es copia fiel, sin columnas calculadas). La app la calcula. Delegación: `LookUp(lista, columna = valor)` y `Filter` con `=`/`>=` sí delegan contra SharePoint; no delegan `AddColumns`, el `LookUp` anidado por fila ni `in`. Esas uniones se evalúan en memoria y son aceptables solo con los volúmenes pequeños indicados.
 - **Índices.** `Deploy-Listas.ps1` indexa solo las columnas de la llave (`pk`) y la de carga incremental (`inc`, vacía en todas las listas de inventario). Una columna de fecha que no es llave no está indexada. Ver Riesgos R-01.
 
@@ -70,7 +70,7 @@ Escrituras sobre `raw_inv_movimiento` (B-13, resuelta por D4). Los `idconcepto` 
 | «Registrar entrada» tipo transferencia (INV-58) | TRE | + | costo promedio del insumo | folio capturado | PROTO «Registrar entrada faltante» |
 | «Registrar entrada» tipo compra sin orden (INV-58) | CMP | + | costo promedio del insumo | folio capturado | Ídem |
 
-Cada una de estas escrituras también suma o resta `raw_inv_insumo.existencia`. D4 lo dice solo para Recibir; para transferencias y «Registrar entrada» es un supuesto que debe confirmar el líder.
+Cada una de estas escrituras también suma o resta `raw_inv_insumo.existencia`. D4 lo dice solo para Recibir; para transferencias y «Registrar entrada» es un supuesto (P-10 en `inventarios.md`).
 
 ## 2. Detalle por lista
 
@@ -116,11 +116,11 @@ Uso: lectura. Fuente: UX02 §03 y pantalla Transferencia (UX02 §03 «Transferen
 | `Estado` | — | **BRECHA** B-06 |
 | `Activa` | — | **BRECHA** B-06 |
 
-Por D3 el selector de sucursales no se construye (ver B-03 y la pregunta abierta de `inventarios.md`).
+Por D5 la sucursal propia es fija y la contraparte de una transferencia se elige de esta lista con un solo selector (dato de la solicitud, sin comparativos, D3). B-06: sin `Activa`, no se pueden filtrar las sucursales activas.
 
 ### 2.4 `pubInvExistencia` → `raw_inv_insumo` + `raw_inv_almacen`
 
-Uso: lectura, y escritura de `existencia` (D4, ver 1.1). UX02 §03 «Fuentes» la presenta como lista de publicación; por D4 es de captura. La spec define una fila por insumo y almacén, que se reemplaza en cada corte.
+Uso: lectura, y escritura de `existencia` (D4, ver 1.1). UX02 §03 «Fuentes» la presenta como lista de publicación; por D4 es de captura, no hay corte de publicación. La spec define una fila por insumo y almacén (B-11).
 
 | Spec | Raw | Nota |
 |---|---|---|
@@ -161,7 +161,7 @@ Uso: lectura. Todas las columnas coinciden por nombre: `idcompra`, `idinsumo`, `
 
 ### 2.7 `pubInvMovimiento` → `raw_inv_movimiento` + `raw_inv_movimiento_concepto`
 
-Uso: lectura. La spec publica solo los últimos 90 días y la pantalla filtra los últimos 7 (UX02 §03 «Compras, movimientos y conteos»).
+Uso: lectura y captura (D4, ver 1.1). UX02 conserva los últimos 90 días y la pantalla filtra los últimos 7 (UX02 §03 «Compras, movimientos y conteos»); la retención es C-1.
 
 | Spec | Raw | Nota |
 |---|---|---|
@@ -180,7 +180,7 @@ Conceptos conocidos (JSON, descripción de `idconcepto`): CMP, TRE, TRS, SPV, ME
 
 ### 2.8 `pubInvConteo` → `raw_inv_conteo_fisico`
 
-Uso: lectura (inventarios físicos del POS).
+Uso: lectura en esta spec; por D4 la lista es de captura de la app, aunque UX02 la presenta como inventarios físicos del POS (quién la escribe: P-9).
 
 | Spec | Raw | Nota |
 |---|---|---|
