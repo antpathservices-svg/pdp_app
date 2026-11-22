@@ -1,10 +1,5 @@
 App:
   Properties:
-    Theme: =PowerAppsTheme
-    StartScreen: =scrInventarios
-    OnStart: |-
-      =// Rol provisional hasta conectar la identidad con raw_app_rol (col, ger, sup, gop, adm)
-      Set(varRol, "ger")
     Formulas: |-
       =// Tokens DPZ-UX-01 (Tema.*)
       Tema = {
@@ -23,11 +18,17 @@ App:
           Exito: RGBA(22, 163, 74, 1),
           Aviso: RGBA(217, 119, 6, 1),
           Error: RGBA(212, 24, 61, 1),
-          Modulo: RGBA(234, 88, 12, 1)
+          Modulo: RGBA(234, 88, 12, 1),
+          // Grid: fondo de barra de avance y líneas de tabla (UX02 §02 «conteo»; falta en UX01, riesgo R-C)
+          Grid: RGBA(252, 233, 204, 1),
+          // Velo de diálogo G15
+          Velo: RGBA(45, 27, 0, 0.5)
       };
       // Medidas responsivas: Resp(teléfono, tablet, escritorio)
       Resp(tel: Number, tab: Number, esc: Number): Number =
           Switch(App.ActiveScreen.Size, ScreenSize.Small, tel, ScreenSize.Medium, tab, esc);
+      EsTelefono = App.ActiveScreen.Size = ScreenSize.Small;
+      EsEscritorio = App.ActiveScreen.Size >= ScreenSize.Large;
       AnchoMax = 1024;
       Gutter = Resp(16, 24, 32);
       MitadHueco = Resp(6, 12, 16);
@@ -42,16 +43,105 @@ App:
       TipoCuerpo = Resp(10.5, 12, 12);      // TY-06
       TipoEtiqueta = 10.5;                  // TY-07
       TipoDetalle = 9;                      // TY-08
-      // Estados de insumo (UX02 §03): critico <= min*0.4, bajo < min.
-      // No delegable (compara dos columnas; CountRows): aceptable con ~89 insumos y pocas órdenes abiertas (spec §6).
-      // Catálogo de insumos activos (~89 filas, spec §6); alimenta Existencias
-      InsumosActivos = Filter(raw_inv_insumo, activo = true);
-      InsumosCriticos = CountRows(Filter(raw_inv_insumo, activo = true, existencia <= stockminimo * 0.4));
-      InsumosBajos = CountRows(Filter(raw_inv_insumo, activo = true, existencia > stockminimo * 0.4, existencia < stockminimo));
-      OrdenesPorRecibir = CountRows(Filter(raw_inv_orden_compra, estado = "Pendiente"));
-      // Estado de un insumo (UX02 §03 EstadoInsumo)
+      // Sucursal piloto (D3). La contraparte de una transferencia sale de raw_app_sucursal (D5).
+      SucursalPropia = "Guanajuato · Río Bravo";
+      // Estado de un insumo (UX02 §03 EstadoInsumo); orden de evaluación INV-61
       EstadoInsumo(existencia: Number, minimo: Number, maximo: Number): Text =
           If(existencia <= minimo * 0.4, "Crítico",
              existencia < minimo, "Bajo",
              maximo > 0 && existencia > maximo, "Sobre máximo",
              "OK");
+      ColorEstado(estado: Text): Color =
+          Switch(estado,
+              "Crítico", Tema.Error, "Bajo", Tema.Aviso, "En pedido", Tema.Marca,
+              "OK", Tema.Exito, "Sobre máximo", Tema.TextoSuave,
+              "Pendiente", Tema.Marca, "Recibida", Tema.Exito,
+              "Aplicada", Tema.Exito, "Cancelada", Tema.TextoSuave,
+              "Solicitada", Tema.Aviso, "Enviada", Tema.Marca,
+              "Borrador", Tema.Marca, "Por revisar", Tema.Aviso, "Cerrado", Tema.Exito, "Corregido", Tema.TextoSuave,
+              "Variación grande", Tema.Aviso, "Posible error de dedo", Tema.Aviso, "Cero inusual", Tema.TextoSuave,
+              "Excede lo disponible", Tema.Error, "Resuelta", Tema.Exito, "Sin existencia", Tema.TextoSuave,
+              Tema.TextoSuave);
+      // INV-12: nunca menor que el mínimo
+      CantidadSugerida(ideal: Number, existencia: Number, porRecibir: Number, minimo: Number): Number =
+          Max(ideal - existencia - porRecibir, minimo);
+      // Semana ISO: año ISO × 100 + semana (Periodo de raw_inv_conteo_semanal_linea)
+      AnioISO(d: Date): Number = Year(DateAdd(d, 3 - Weekday(d, StartOfWeek.MondayZero), TimeUnit.Days));
+      PeriodoDe(d: Date): Number = AnioISO(d) * 100 + ISOWeekNum(d);
+      ConteoIdDe(d: Date): Text = "CS-" & AnioISO(d) & "-" & Text(ISOWeekNum(d), "00");
+      InicioSemana(d: Date): Date = DateAdd(d, -Weekday(d, StartOfWeek.MondayZero), TimeUnit.Days);
+      // ValidarCantidad (UX02 §03, INV-47): devuelve el mensaje o "" si es válida. Coma decimal = punto.
+      ValidarCantidad(t: Text, conDecimales: Boolean): Text =
+          With({s: Substitute(Trim(t), ",", ".")},
+              If(IsBlank(s), "Escribe la cantidad o toca Sin existencia.",
+                 StartsWith(s, "-"), "La cantidad no puede ser negativa.",
+                 !IsMatch(s, "^\d+(\.\d+)?$"), "Escribe solo números.",
+                 IsMatch(s, "^\d+\.\d{3,}$"), "Usa máximo dos decimales.",
+                 !conDecimales && IsMatch(s, "^\d+\.\d*[1-9]\d*$"), "Se cuenta en enteros, sin decimales.",
+                 Value(s, "en-US") > 99999, "La cantidad no es válida.",
+                 ""));
+      NumeroDe(t: Text): Number = IfError(Value(Substitute(Trim(t), ",", "."), "en-US"), 0);
+      // AlertaConteo (UX02 §03): umbrales UmbralVariacion 0.30 y FactorDedo 10, por validar [C-7]
+      AlertaConteo(cant: Number, sinExistencia: Boolean, pasada: Number, prom4: Number): Text =
+          If(sinExistencia || cant = 0,
+                 If(pasada > 0 && prom4 >= 1, "cero", ""),
+             pasada > 0 && (cant >= 10 * pasada || cant <= pasada / 10), "dedo",
+             pasada > 0 && Abs(cant - pasada) / pasada > 0.30 && Abs(cant - pasada) >= 1, "variacion",
+             "");
+      EtiquetaAlerta(id: Text): Text =
+          Switch(id, "variacion", "Variación grande", "dedo", "Posible error de dedo", "cero", "Cero inusual",
+                 "disp", "Excede lo disponible", "resuelta", "Resuelta", "");
+      NombreRol(clave: Text): Text =
+          Switch(clave, "col", "Colaborador", "ger", "Gerente de sucursal", "sup", "Supervisor",
+                 "gop", "Gerente de operaciones", "adm", "Administrador corporativo", clave);
+      FechaCorta(d: DateTime): Text = Text(d, "d mmm", "es-MX");
+      // ---- Datos compartidos del módulo ----
+      // Catálogos pequeños materializados en memoria (ForAll no delega: < 500 filas cada uno, spec §6).
+      Categorias = ForAll(Sort(raw_inv_insumo_categoria, orden) As C, {id_raw: C.id_raw, nombre: C.nombre, orden: C.orden});
+      Almacenes = ForAll(Sort(raw_inv_almacen, nombre) As A, {idalmacen: A.idalmacen, nombre: A.nombre});
+      Unidades = ForAll(Sort(raw_inv_unidad, unidad) As U, {unidad: U.unidad, ab: U.ab, dec: U.dec});
+      Proveedores = ForAll(Sort(raw_inv_proveedor, nombre) As P, {idproveedor: P.idproveedor, nombre: P.nombre});
+      Conceptos = ForAll(Sort(raw_inv_movimiento_concepto, descripcion) As C, {idconcepto: C.idconcepto, descripcion: C.descripcion});
+      // activa = true: delegable, indexada (spec §6)
+      Sucursales = ForAll(Sort(Filter(raw_app_sucursal, activa = true), nombre) As S, {nombre: S.nombre});
+      // estado = "Pendiente": delegable, indexada
+      OrdenesPendientes = ForAll(Sort(Filter(raw_inv_orden_compra, estado = "Pendiente"), creada) As O,
+          {ID: O.ID, id_raw: O.id_raw, proveedor: O.proveedor, creada: O.creada});
+      // id_orden in …: no delegable (C-11), aceptable con pocas órdenes abiertas
+      PartidasPendientes = ForAll(Filter(raw_inv_orden_compra_partida, id_orden in OrdenesPendientes.id_raw) As P,
+          {ID: P.ID, id_orden: P.id_orden, idinsumo: P.idinsumo, cantidad: P.cantidad, unidad: P.unidad});
+      // Catálogo de insumos activos (~89 filas). activo = true delega; el resto se calcula en memoria.
+      Insumos = ForAll(Sort(Filter(raw_inv_insumo, activo = true), descripcion) As I,
+          With(
+              {u: LookUp(Unidades, unidad = I.presentacion), pr: Sum(Filter(PartidasPendientes, idinsumo = I.idinsumo), cantidad)},
+              {
+                  ID: I.ID, idinsumo: I.idinsumo, descripcion: I.descripcion, idcategoria: I.idcategoria,
+                  idalmacen: I.idalmacen, presentacion: I.presentacion, existencia: I.existencia,
+                  stockminimo: I.stockminimo, stockideal: I.stockideal, stockmaximo: I.stockmaximo,
+                  costopromedio: I.costopromedio, ordenConteo: I.ordenConteo, versionCatalogo: I.versionCatalogo,
+                  Categoria: LookUp(Categorias, id_raw = I.idcategoria).nombre,
+                  Almacen: LookUp(Almacenes, idalmacen = I.idalmacen).nombre,
+                  Ab: Coalesce(u.ab, I.presentacion),
+                  Dec: Coalesce(u.dec, true),
+                  PorRecibir: pr,
+                  Estado: EstadoInsumo(I.existencia, I.stockminimo, I.stockmaximo),
+                  Valor: I.existencia * I.costopromedio
+              }
+          ));
+      InsumosCriticos = CountRows(Filter(Insumos, Estado = "Crítico"));
+      InsumosBajos = CountRows(Filter(Insumos, Estado = "Bajo"));
+      OrdenesPorRecibir = CountRows(OrdenesPendientes);
+    OnStart: |-
+      =// Rol provisional: raw_app_rol es el catálogo de roles (clave, nombre) y aún no hay lista usuario → rol.
+      // Hasta tenerla, el rol se fija aquí (col, ger, sup, gop, adm).
+      Set(varRol, "ger");
+      Set(varTabGen, "Existencias");
+      // Borradores en memoria (esquema fijado aquí, se vacían al guardar)
+      ClearCollect(colOrdenBorrador, {n: 0, idinsumo: "", cantidad: ""});
+      Clear(colOrdenBorrador);
+      ClearCollect(colTrf, {n: 0, idinsumo: "", descripcion: "", cantidad: "", unidad: "", precio: ""});
+      Clear(colTrf);
+      ClearCollect(colErrCnt, {idinsumo: "", msg: ""});
+      Clear(colErrCnt)
+    StartScreen: =scrInventarios
+    Theme: =PowerAppsTheme

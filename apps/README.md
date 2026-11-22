@@ -28,6 +28,8 @@ El MCP no agrega orígenes de datos: las listas de SharePoint se conectan en Stu
 
 | App | Entorno | App id | Estado |
 |---|---|---|---|
-| PDP Inventarios (dev) | `Default-5a7df1b6-a688-4634-b639-e2baf07e8e53` (franquiciasab) | `88495839-4776-4c23-a944-a2cb95e21ae2` | MCP conectado (2026-11-22). 42 listas de DEPRITAM conectadas como origen de datos (verificado contra `productos.json`); app en blanco, sin pantallas |
+| PDP Inventarios (dev) | `Default-5a7df1b6-a688-4634-b639-e2baf07e8e53` (franquiciasab) | `88495839-4776-4c23-a944-a2cb95e21ae2` | 8 pantallas del módulo construidas (2026-11-22): portada, Orden de compra, Inventario general (4 pestañas), Control de Masa, Transferencia, Conteo, Revisión y Cierre. Falta la revisión visual en Studio a 390, 768 y 1366 px |
 
-Al cerrar cada sesión de trabajo: `pac canvas download` y commit de los `.pa.yaml` en `apps/<app>/src/`.
+`compile_canvas` valida los `.pa.yaml` y, si no hay errores, los aplica a la sesión de Studio. Las advertencias no bloquean.
+
+Al cerrar cada sesión de trabajo: `sync_canvas` hacia `apps/<app>/src/` y commit de los `.pa.yaml`. `pac canvas download` no sirve en este entorno: pide una organización de Dataverse y el entorno predeterminado del tenant no la tiene.
