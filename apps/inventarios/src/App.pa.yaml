@@ -1,0 +1,57 @@
+App:
+  Properties:
+    Theme: =PowerAppsTheme
+    StartScreen: =scrInventarios
+    OnStart: |-
+      =// Rol provisional hasta conectar la identidad con raw_app_rol (col, ger, sup, gop, adm)
+      Set(varRol, "ger")
+    Formulas: |-
+      =// Tokens DPZ-UX-01 (Tema.*)
+      Tema = {
+          Marca: RGBA(255, 140, 0, 1),
+          MarcaHover: RGBA(255, 171, 64, 1),
+          TextoMarca: RGBA(194, 65, 12, 1),
+          Dorado: RGBA(255, 215, 0, 1),
+          Fondo: RGBA(255, 247, 237, 1),
+          Superficie: RGBA(255, 255, 255, 1),
+          SuperficieSuave: RGBA(255, 240, 204, 1),
+          SuperficieHover: RGBA(255, 251, 245, 1),
+          SuperficiePresion: RGBA(255, 243, 224, 1),
+          Borde: RGBA(255, 140, 0, 0.2),
+          Texto: RGBA(45, 27, 0, 1),
+          TextoSuave: RGBA(139, 105, 20, 1),
+          Exito: RGBA(22, 163, 74, 1),
+          Aviso: RGBA(217, 119, 6, 1),
+          Error: RGBA(212, 24, 61, 1),
+          Modulo: RGBA(234, 88, 12, 1)
+      };
+      // Medidas responsivas: Resp(teléfono, tablet, escritorio)
+      Resp(tel: Number, tab: Number, esc: Number): Number =
+          Switch(App.ActiveScreen.Size, ScreenSize.Small, tel, ScreenSize.Medium, tab, esc);
+      AnchoMax = 1024;
+      Gutter = Resp(16, 24, 32);
+      MitadHueco = Resp(6, 12, 16);
+      // Columna de contenido: Min(ancho - 2·Gutter, 1024)
+      MargenColumna(ancho: Number): Number = Max(Gutter, (ancho - AnchoMax) / 2);
+      // Tipografía: Size en pt para controles clásicos (px × 0.75)
+      TipoHero = Resp(18, 22.5, 27);        // TY-01
+      TipoAppTitulo = Resp(15, 18, 18);     // TY-02
+      TipoLead = Resp(12, 13.5, 15);        // TY-03
+      TipoTab = Resp(9, 13.5, 15);          // TY-04
+      TipoCardTit = Resp(12, 13.5, 13.5);   // TY-05
+      TipoCuerpo = Resp(10.5, 12, 12);      // TY-06
+      TipoEtiqueta = 10.5;                  // TY-07
+      TipoDetalle = 9;                      // TY-08
+      // Estados de insumo (UX02 §03): critico <= min*0.4, bajo < min.
+      // No delegable (compara dos columnas; CountRows): aceptable con ~89 insumos y pocas órdenes abiertas (spec §6).
+      // Catálogo de insumos activos (~89 filas, spec §6); alimenta Existencias
+      InsumosActivos = Filter(raw_inv_insumo, activo = true);
+      InsumosCriticos = CountRows(Filter(raw_inv_insumo, activo = true, existencia <= stockminimo * 0.4));
+      InsumosBajos = CountRows(Filter(raw_inv_insumo, activo = true, existencia > stockminimo * 0.4, existencia < stockminimo));
+      OrdenesPorRecibir = CountRows(Filter(raw_inv_orden_compra, estado = "Pendiente"));
+      // Estado de un insumo (UX02 §03 EstadoInsumo)
+      EstadoInsumo(existencia: Number, minimo: Number, maximo: Number): Text =
+          If(existencia <= minimo * 0.4, "Crítico",
+             existencia < minimo, "Bajo",
+             maximo > 0 && existencia > maximo, "Sobre máximo",
+             "OK");

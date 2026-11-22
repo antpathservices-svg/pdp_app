@@ -1,0 +1,429 @@
+Screens:
+  scrInventarios_General:
+    Properties:
+      Fill: =Tema.Fondo
+      OnVisible: |-
+        =Set(varTabGen, If(IsBlank(varTabGen), "Existencias", varTabGen));
+        Reset(txtGen_Buscar)
+    Children:
+      - conGen_Raiz:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            Fill: =Tema.Fondo
+            Height: =Parent.Height
+            Width: =Parent.Width
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutGap: =Resp(24, 40, 48)
+            PaddingTop: =Gutter
+            PaddingBottom: =Gutter
+            PaddingLeft: =MargenColumna(Parent.Width)
+            PaddingRight: =MargenColumna(Parent.Width)
+          Children:
+            - conGen_Header:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  Fill: =Tema.Superficie
+                  FillPortions: =0
+                  Height: =64
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutGap: =12
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                Children:
+                  - btnGen_Regresar:
+                      Control: Classic/Button
+                      Properties:
+                        Font: =Font.'Segoe UI'
+                        Size: =TipoEtiqueta
+                        FontWeight: =FontWeight.Semibold
+                        Text: ="‹"
+                        Width: =44
+                        Height: =44
+                        Fill: =Tema.Fondo
+                        Color: =Tema.Texto
+                        BorderColor: =Tema.Borde
+                        BorderThickness: =2
+                        Tooltip: ="Regresar a Inventarios"
+                        TabIndex: =0
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        OnSelect: =Navigate(scrInventarios, ScreenTransition.None)
+                  - lblGen_Marca:
+                      Control: Label
+                      Properties:
+                        Font: =Font.'Segoe UI'
+                        Text: ="Inventarios"
+                        Color: =Tema.Texto
+                        FontWeight: =FontWeight.Bold
+                        Size: =TipoAppTitulo
+            - conGen_Titulo:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  Fill: =Color.Transparent
+                  FillPortions: =0
+                  Height: =Resp(72, 64, 64)
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                Children:
+                  - lblGen_Titulo:
+                      Control: Label
+                      Properties:
+                        AutoHeight: =true
+                        Font: =Font.'Segoe UI'
+                        Text: ="Inventario general"
+                        Color: =Tema.Texto
+                        FontWeight: =FontWeight.Bold
+                        Size: =TipoHero
+                  - lblGen_Subtitulo:
+                      Control: Label
+                      Properties:
+                        AutoHeight: =true
+                        Font: =Font.'Segoe UI'
+                        Text: =CountRows(InsumosActivos) & " insumos · " & OrdenesPorRecibir & " órdenes por recibir"
+                        Color: =Tema.TextoSuave
+                        Size: =TipoLead
+            - galGen_Pestanas:
+                Control: Gallery
+                Variant: Horizontal
+                Properties:
+                  FillPortions: =0
+                  Height: =48
+                  Items: |-
+                    =Filter(
+                        Table(
+                            {Id: "Existencias", Roles: "col,ger,sup,gop,adm"},
+                            {Id: "Compras", Roles: "ger,sup,gop,adm"},
+                            {Id: "Movimientos", Roles: "ger,sup,gop,adm"},
+                            {Id: "Conteos", Roles: "col,ger,sup,gop,adm"}
+                        ),
+                        varRol in Roles
+                    )
+                  TemplatePadding: =0
+                  TemplateSize: =If(App.ActiveScreen.Size = ScreenSize.Small, Self.Width / If(varRol = "col", 2, 4), 140)
+                  Fill: =Color.Transparent
+                  AccessibleLabel: ="Pestañas de inventario general"
+                  TabIndex: =0
+                Children:
+                  - btnGenTab:
+                      Control: Classic/Button
+                      Properties:
+                        Font: =Font.'Segoe UI'
+                        Size: =TipoTab
+                        FontWeight: =FontWeight.Semibold
+                        Text: =ThisItem.Id
+                        X: =MitadHueco
+                        Y: =(Parent.TemplateHeight - 44) / 2
+                        Width: =Parent.TemplateWidth - 2 * MitadHueco
+                        Height: =44
+                        Fill: =If(varTabGen = ThisItem.Id, Tema.Marca, Tema.Superficie)
+                        Color: =Tema.Texto
+                        BorderColor: =If(varTabGen = ThisItem.Id, Tema.Marca, Tema.Borde)
+                        BorderThickness: =2
+                        FocusedBorderColor: =Tema.Texto
+                        FocusedBorderThickness: =2
+                        TabIndex: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        OnSelect: =Set(varTabGen, ThisItem.Id)
+            - conGen_Existencias:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  Fill: =Color.Transparent
+                  Visible: =varTabGen = "Existencias"
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutGap: =12
+                Children:
+                  - conGen_Filtros:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =Tema.Superficie
+                        FillPortions: =0
+                        Height: =If(App.ActiveScreen.Size = ScreenSize.Small, 272, 64)
+                        LayoutDirection: =If(App.ActiveScreen.Size = ScreenSize.Small, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                        LayoutAlignItems: =If(App.ActiveScreen.Size = ScreenSize.Small, LayoutAlignItems.Stretch, LayoutAlignItems.Center)
+                        LayoutGap: =8
+                        PaddingTop: =10
+                        PaddingBottom: =10
+                        PaddingLeft: =12
+                        PaddingRight: =12
+                        RadiusTopLeft: =16
+                        RadiusTopRight: =16
+                        RadiusBottomLeft: =16
+                        RadiusBottomRight: =16
+                      Children:
+                        - txtGen_Buscar:
+                            Control: Classic/TextInput
+                            Properties:
+                              Font: =Font.'Segoe UI'
+                              Size: =TipoCuerpo
+                              HintText: ="Nombre del insumo"
+                              FillPortions: =If(App.ActiveScreen.Size = ScreenSize.Small, 0, 2)
+                              Height: =44
+                              Color: =Tema.Texto
+                              BorderColor: =Tema.Borde
+                              BorderThickness: =2
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              AccessibleLabel: ="Buscar insumo por nombre"
+                              TabIndex: =0
+                        - cbGen_Categoria:
+                            Control: Classic/DropDown
+                            Properties:
+                              Font: =Font.'Segoe UI'
+                              Size: =TipoCuerpo
+                              Items: =raw_inv_insumo_categoria
+                              Height: =44
+                              FillPortions: =If(App.ActiveScreen.Size = ScreenSize.Small, 0, 1)
+                              Color: =Tema.Texto
+                              BorderColor: =Tema.Borde
+                              BorderThickness: =2
+                              AccessibleLabel: ="Filtrar por categoría"
+                              TabIndex: =0
+                        - cbGen_Almacen:
+                            Control: Classic/DropDown
+                            Properties:
+                              Font: =Font.'Segoe UI'
+                              Size: =TipoCuerpo
+                              Items: =raw_inv_almacen
+                              Height: =44
+                              FillPortions: =If(App.ActiveScreen.Size = ScreenSize.Small, 0, 1)
+                              Color: =Tema.Texto
+                              BorderColor: =Tema.Borde
+                              BorderThickness: =2
+                              AccessibleLabel: ="Filtrar por almacén"
+                              TabIndex: =0
+                        - cbGen_Estado:
+                            Control: Classic/DropDown
+                            Properties:
+                              Font: =Font.'Segoe UI'
+                              Size: =TipoCuerpo
+                              Items: =["Crítico", "Bajo", "OK", "Sobre máximo"]
+                              Height: =44
+                              FillPortions: =If(App.ActiveScreen.Size = ScreenSize.Small, 0, 1)
+                              Color: =Tema.Texto
+                              BorderColor: =Tema.Borde
+                              BorderThickness: =2
+                              AccessibleLabel: ="Filtrar por estado"
+                              TabIndex: =0
+                        - btnGen_Limpiar:
+                            Control: Classic/Button
+                            Properties:
+                              Font: =Font.'Segoe UI'
+                              Size: =TipoEtiqueta
+                              FontWeight: =FontWeight.Semibold
+                              Text: ="Limpiar"
+                              Width: =90
+                              Height: =44
+                              Fill: =Tema.Superficie
+                              Color: =Tema.Texto
+                              BorderColor: =Tema.Borde
+                              BorderThickness: =2
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              TabIndex: =0
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              OnSelect: |-
+                                =Reset(txtGen_Buscar);
+                                Reset(cbGen_Categoria);
+                                Reset(cbGen_Almacen);
+                                Reset(cbGen_Estado)
+                  - galGen_Ordenes:
+                      Control: Gallery
+                      Variant: Vertical
+                      Properties:
+                        FillPortions: =0
+                        Height: =If(CountRows(Self.AllItems) = 0, 0, Min(CountRows(Self.AllItems), 3) * 56)
+                        Visible: =varRol <> "col"
+                        Items: =Filter(raw_inv_orden_compra, estado = "Pendiente")
+                        TemplatePadding: =2
+                        TemplateSize: =56
+                        Fill: =Tema.Superficie
+                        AccessibleLabel: ="Órdenes de compra por recibir"
+                        TabIndex: =0
+                      Children:
+                        - conOrd_Fila:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              Fill: =Color.Transparent
+                              Height: =Parent.TemplateHeight - 4
+                              Width: =Parent.TemplateWidth
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutGap: =8
+                              PaddingLeft: =12
+                              PaddingRight: =12
+                            Children:
+                              - lblOrd_Folio:
+                                  Control: Label
+                                  Properties:
+                                    Font: =Font.'Segoe UI'
+                                    Text: =ThisItem.id_raw & " · " & ThisItem.proveedor
+                                    Color: =Tema.Texto
+                                    FillPortions: =3
+                                    Size: =TipoCuerpo
+                              - lblOrd_Estado:
+                                  Control: Label
+                                  Properties:
+                                    Font: =Font.'Segoe UI'
+                                    Text: ="Pendiente"
+                                    Color: =Tema.TextoMarca
+                                    FontWeight: =FontWeight.Bold
+                                    FillPortions: =1
+                                    Size: =TipoCuerpo
+                              - btnOrd_Recibir:
+                                  Control: Classic/Button
+                                  Properties:
+                                    Font: =Font.'Segoe UI'
+                                    Size: =TipoEtiqueta
+                                    FontWeight: =FontWeight.Semibold
+                                    Text: ="Recibir"
+                                    Width: =90
+                                    Height: =44
+                                    Fill: =Tema.Marca
+                                    HoverFill: =Tema.MarcaHover
+                                    Color: =Tema.Texto
+                                    BorderColor: =Tema.Marca
+                                    BorderThickness: =2
+                                    RadiusTopLeft: =8
+                                    RadiusTopRight: =8
+                                    RadiusBottomLeft: =8
+                                    RadiusBottomRight: =8
+                                    TabIndex: =0
+                                    FocusedBorderColor: =Tema.Texto
+                                    FocusedBorderThickness: =2
+                                    Visible: =varRol in "ger,sup"
+                                    OnSelect: |-
+                                      =With(
+                                          {ord: ThisItem},
+                                          ForAll(
+                                              Filter(raw_inv_orden_compra_partida, id_orden = ord.id_raw) As P,
+                                              Patch(
+                                                  raw_inv_insumo,
+                                                  LookUp(raw_inv_insumo, idinsumo = P.idinsumo),
+                                                  {existencia: LookUp(raw_inv_insumo, idinsumo = P.idinsumo).existencia + P.cantidad}
+                                              );
+                                              Patch(
+                                                  raw_inv_movimiento,
+                                                  Defaults(raw_inv_movimiento),
+                                                  {Title: ord.id_raw, fecha: Now(), idinsumo: P.idinsumo, idconcepto: "CMP", cantidad: P.cantidad, referencia: ord.id_raw}
+                                              )
+                                          );
+                                          Patch(raw_inv_orden_compra, ord, {estado: "Recibida", recibida: Now(), recibidaPor: User().FullName})
+                                      );
+                                      Notify("Orden recibida", NotificationType.Success)
+                  - galGen_Existencias:
+                      Control: Gallery
+                      Variant: Vertical
+                      Properties:
+                        Items: |-
+                          =Filter(
+                              AddColumns(
+                                  InsumosActivos,
+                                  Estado, EstadoInsumo(existencia, stockminimo, stockmaximo)
+                              ),
+                              (IsBlank(txtGen_Buscar.Text) || txtGen_Buscar.Text in Title),
+                              (IsBlank(cbGen_Categoria.Selected.id_raw) || idcategoria = cbGen_Categoria.Selected.id_raw),
+                              (IsBlank(cbGen_Almacen.Selected.idalmacen) || idalmacen = cbGen_Almacen.Selected.idalmacen),
+                              (IsBlank(cbGen_Estado.Selected.Value) || Estado = cbGen_Estado.Selected.Value)
+                          )
+                        TemplatePadding: =2
+                        TemplateSize: =56
+                        Fill: =Tema.Superficie
+                        AccessibleLabel: ="Existencias por insumo"
+                        TabIndex: =0
+                      Children:
+                        - conExist_Fila:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              Fill: =Color.Transparent
+                              Height: =Parent.TemplateHeight - 4
+                              Width: =Parent.TemplateWidth
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutGap: =8
+                              PaddingLeft: =12
+                              PaddingRight: =12
+                            Children:
+                              - lblExist_Insumo:
+                                  Control: Label
+                                  Properties:
+                                    Font: =Font.'Segoe UI'
+                                    Text: =ThisItem.Title
+                                    Color: =Tema.Texto
+                                    FillPortions: =3
+                                    Size: =TipoCuerpo
+                              - lblExist_Existencia:
+                                  Control: Label
+                                  Properties:
+                                    Font: =Font.'Segoe UI'
+                                    Text: =Text(ThisItem.existencia, "#,##0.##")
+                                    Color: =Tema.Texto
+                                    Align: =Align.Right
+                                    FillPortions: =1
+                                    Size: =TipoCuerpo
+                              - lblExist_Minimo:
+                                  Control: Label
+                                  Properties:
+                                    Font: =Font.'Segoe UI'
+                                    Text: =Text(ThisItem.stockminimo, "#,##0.##")
+                                    Color: =Tema.TextoSuave
+                                    Align: =Align.Right
+                                    Visible: =App.ActiveScreen.Size <> ScreenSize.Small
+                                    FillPortions: =1
+                                    Size: =TipoDetalle
+                              - lblExist_Valor:
+                                  Control: Label
+                                  Properties:
+                                    Font: =Font.'Segoe UI'
+                                    Text: =Text(ThisItem.existencia * ThisItem.costopromedio, "$#,##0.00")
+                                    Color: =Tema.Texto
+                                    Align: =Align.Right
+                                    Visible: =varRol <> "col"
+                                    FillPortions: =1
+                                    Size: =TipoCuerpo
+                              - lblExist_Estado:
+                                  Control: Label
+                                  Properties:
+                                    Font: =Font.'Segoe UI'
+                                    Text: =ThisItem.Estado
+                                    Color: =Switch(ThisItem.Estado, "Crítico", Tema.Error, "Bajo", Tema.Aviso, "Sobre máximo", Tema.TextoSuave, Tema.Exito)
+                                    FontWeight: =FontWeight.Bold
+                                    Align: =Align.Right
+                                    FillPortions: =1
+                                    Size: =TipoCuerpo
+            - lblGen_Pendiente:
+                Control: Label
+                Properties:
+                  Font: =Font.'Segoe UI'
+                  Text: =varTabGen & " (pendiente de construir)"
+                  Color: =Tema.TextoSuave
+                  Visible: =varTabGen <> "Existencias"
+                  AutoHeight: =true
+                  FillPortions: =0
+                  Height: =44
+                  Size: =TipoCuerpo

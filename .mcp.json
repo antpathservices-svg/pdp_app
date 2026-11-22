@@ -3,6 +3,10 @@
     "m365": {
       "command": "npx",
       "args": ["-y", "@pnp/cli-microsoft365-mcp-server@latest"]
+    },
+    "canvas-authoring": {
+      "command": "dnx",
+      "args": ["Microsoft.PowerApps.CanvasAuthoring.McpServer", "--yes"]
     }
   }
 }

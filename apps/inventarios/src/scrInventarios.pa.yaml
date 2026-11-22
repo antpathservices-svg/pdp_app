@@ -1,0 +1,246 @@
+Screens:
+  scrInventarios:
+    Properties:
+      Fill: =Tema.Fondo
+    Children:
+      - conInv_Raiz:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            Fill: =Tema.Fondo
+            Height: =Parent.Height
+            Width: =Parent.Width
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutGap: =Resp(24, 40, 48)
+            PaddingTop: =Gutter
+            PaddingBottom: =Gutter
+            PaddingLeft: =MargenColumna(Parent.Width)
+            PaddingRight: =MargenColumna(Parent.Width)
+          Children:
+            - conInv_Header:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  Fill: =Tema.Superficie
+                  FillPortions: =0
+                  Height: =64
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutGap: =12
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                Children:
+                  - btnInv_Regresar:
+                      Control: Classic/Button
+                      Properties:
+                        Font: =Font.'Segoe UI'
+                        Size: =TipoEtiqueta
+                        FontWeight: =FontWeight.Semibold
+                        Text: ="‹"
+                        Width: =44
+                        Height: =44
+                        Fill: =Tema.Fondo
+                        Color: =Tema.Texto
+                        BorderColor: =Tema.Borde
+                        BorderThickness: =2
+                        Tooltip: ="Regresar al menú"
+                        TabIndex: =0
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        OnSelect: |-
+                          =Notify("Menú pendiente de integrar", NotificationType.Information)
+                  - lblInv_Marca:
+                      Control: Label
+                      Properties:
+                        Font: =Font.'Segoe UI'
+                        Text: ="Pizza Deprizza"
+                        Color: =Tema.Texto
+                        FontWeight: =FontWeight.Bold
+                        Size: =TipoAppTitulo
+            - conInv_Titulo:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  Fill: =Color.Transparent
+                  FillPortions: =0
+                  Height: =Resp(72, 64, 64)
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                Children:
+                  - lblInv_Titulo:
+                      Control: Label
+                      Properties:
+                        AutoHeight: =true
+                        Font: =Font.'Segoe UI'
+                        Text: ="Inventarios y Compras"
+                        Color: =Tema.Texto
+                        FontWeight: =FontWeight.Bold
+                        Size: =TipoHero
+                  - lblInv_Subtitulo:
+                      Control: Label
+                      Properties:
+                        AutoHeight: =true
+                        Font: =Font.'Segoe UI'
+                        Text: ="Gestión de stock y proveedores"
+                        Color: =Tema.TextoSuave
+                        Size: =TipoLead
+            - galInv_Kpis:
+                Control: Gallery
+                Variant: Vertical
+                Properties:
+                  FillPortions: =0
+                  Height: =96
+                  Items: |-
+                    =Table(
+                        {Id: "critico", Etiqueta: "Stock crítico", Valor: InsumosCriticos, Color: Tema.Error},
+                        {Id: "bajo", Etiqueta: "Stock bajo", Valor: InsumosBajos, Color: Tema.Aviso},
+                        {Id: "ordenes", Etiqueta: "Órdenes por recibir", Valor: OrdenesPorRecibir, Color: Tema.TextoMarca}
+                    )
+                  Visible: =varRol <> "col"
+                  AccessibleLabel: ="Indicadores de inventario"
+                  TabIndex: =0
+                  TemplatePadding: =0
+                  TemplateSize: =Self.Width / 3
+                  WrapCount: =3
+                  Fill: =Color.Transparent
+                Children:
+                  - conKpi_Tarjeta:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =Tema.Superficie
+                        X: =MitadHueco
+                        Y: =MitadHueco
+                        Height: =Parent.TemplateHeight - 2 * MitadHueco
+                        Width: =Parent.TemplateWidth - 2 * MitadHueco
+                        BorderColor: =Tema.Borde
+                        BorderThickness: =2
+                        PaddingLeft: =4
+                        PaddingRight: =4
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutJustifyContent: =LayoutJustifyContent.Center
+                        RadiusTopLeft: =16
+                        RadiusTopRight: =16
+                        RadiusBottomLeft: =16
+                        RadiusBottomRight: =16
+                      Children:
+                        - lblKpi_Valor:
+                            Control: Label
+                            Properties:
+                              Font: =Font.'Segoe UI'
+                              Text: =ThisItem.Valor
+                              Color: =ThisItem.Color
+                              FontWeight: =FontWeight.Bold
+                              Size: =TipoHero
+                              Align: =Align.Center
+                        - lblKpi_Etiqueta:
+                            Control: Label
+                            Properties:
+                              Font: =Font.'Segoe UI'
+                              AutoHeight: =true
+                              Text: =ThisItem.Etiqueta
+                              Color: =Tema.TextoSuave
+                              Size: =TipoDetalle
+                              Align: =Align.Center
+            - galInv_Accesos:
+                Control: Gallery
+                Variant: Vertical
+                Properties:
+                  Items: |-
+                    =Filter(
+                        Table(
+                            {Id: "orden", Titulo: "Nueva orden de compra", Detalle: "Pide insumos a un proveedor", Destino: "", Roles: "ger,sup,gop,adm"},
+                            {Id: "general", Titulo: "Inventario general", Detalle: "Existencias, compras, movimientos y conteos", Destino: "scrInventarios_General", Roles: "col,ger,sup,gop,adm"},
+                            {Id: "masa", Titulo: "Control de Masa", Detalle: "Bolitas obtenidas por mezcla", Destino: "scrInventarios_ControlMasa", Roles: "ger,sup,gop,adm"},
+                            {Id: "trf", Titulo: "Transferencia de Mercancías", Detalle: "Envío entre sucursales", Destino: "scrInventarios_Transferencia", Roles: "ger,sup,gop,adm"},
+                            {Id: "conteo", Titulo: "Conteo semanal", Detalle: "Conteo físico por categorías", Destino: "scrInventarios_Conteo", Roles: "col,ger,sup,gop,adm"}
+                        ),
+                        varRol in Roles
+                    )
+                  TemplatePadding: =0
+                  TemplateSize: =100
+                  WrapCount: =If(Self.Width > 700, 2, 1)
+                  AccessibleLabel: ="Accesos del módulo de inventarios"
+                  TabIndex: =0
+                  Fill: =Color.Transparent
+                Children:
+                  - conAcceso_Tarjeta:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =Tema.Superficie
+                        X: =MitadHueco
+                        Y: =MitadHueco
+                        Width: =Parent.TemplateWidth - 2 * MitadHueco
+                        Height: =Parent.TemplateHeight - 2 * MitadHueco
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutJustifyContent: =LayoutJustifyContent.Center
+                        LayoutGap: =4
+                        PaddingLeft: =16
+                        PaddingRight: =16
+                        BorderColor: =Tema.Borde
+                        BorderThickness: =2
+                        RadiusTopLeft: =16
+                        RadiusTopRight: =16
+                        RadiusBottomLeft: =16
+                        RadiusBottomRight: =16
+                      Children:
+                        - lblAcceso_Titulo:
+                            Control: Label
+                            Properties:
+                              AutoHeight: =true
+                              Font: =Font.'Segoe UI'
+                              Text: =ThisItem.Titulo
+                              Color: =Tema.Texto
+                              FontWeight: =FontWeight.Bold
+                              Size: =TipoCardTit
+                        - lblAcceso_Detalle:
+                            Control: Label
+                            Properties:
+                              AutoHeight: =true
+                              Font: =Font.'Segoe UI'
+                              Text: =ThisItem.Detalle
+                              Color: =Tema.TextoSuave
+                              Size: =TipoCuerpo
+                  - btnAcceso_Tarjeta:
+                      Control: Classic/Button
+                      Properties:
+                        Font: =Font.'Segoe UI'
+                        Text: =ThisItem.Titulo & ". " & ThisItem.Detalle
+                        Color: =Color.Transparent
+                        X: =MitadHueco
+                        Y: =MitadHueco
+                        Width: =Parent.TemplateWidth - 2 * MitadHueco
+                        Height: =Parent.TemplateHeight - 2 * MitadHueco
+                        Fill: =Color.Transparent
+                        HoverFill: =Color.Transparent
+                        PressedFill: =Color.Transparent
+                        BorderThickness: =0
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        TabIndex: =0
+                        RadiusTopLeft: =16
+                        RadiusTopRight: =16
+                        RadiusBottomLeft: =16
+                        RadiusBottomRight: =16
+                        OnSelect: |-
+                          =If(
+                              ThisItem.Id = "orden",
+                              Notify("Diálogo de orden de compra pendiente de construir", NotificationType.Information),
+                              ThisItem.Id = "general",
+                              Navigate(scrInventarios_General, ScreenTransition.None),
+                              ThisItem.Id = "masa",
+                              Navigate(scrInventarios_ControlMasa, ScreenTransition.None),
+                              Notify("Pantalla " & ThisItem.Destino & " pendiente de construir", NotificationType.Information)
+                          )
