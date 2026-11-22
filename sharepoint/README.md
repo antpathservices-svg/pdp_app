@@ -55,7 +55,8 @@ pwsh ./sharepoint/Deploy-Listas.ps1 -SiteUrl https://<tenant>.sharepoint.com/sit
 
 | Fecha | Sitio | Resultado |
 |---|---|---|
-| 2026-11-21 | `https://franquiciasab.sharepoint.com/sites/DEPRITAM` | 40 listas, 234 columnas y 57 índices, verificados contra `productos.json`. Tardó unos 60 minutos (cada columna es una llamada). |
+| 2026-11-21 | `https://franquiciasab.sharepoint.com/sites/DEPRITAM` | v1.4: 40 listas, 234 columnas y 57 índices, verificados contra `productos.json`. Tardó unos 60 minutos (cada columna es una llamada). |
+| 2026-11-22 | `https://franquiciasab.sharepoint.com/sites/DEPRITAM` | v1.5: primero de prueba `raw_inv_conteo_semanal*` y `raw_inv_masa_mezcla`, luego completo. Resultado verificado: 42 listas, 277 columnas y 78 índices, sin duplicadas ni advertencias de tipo. Las `raw_inv_*` estaban vacías antes de cambiar las llaves. |
 
 Nota: SharePoint guardó la columna `c` de `raw_app_receta_producto` con nombre interno `_x0063_` (el nombre visible sigue siendo `c`). Power Apps la ve como `c`; por Microsoft Graph se escribe como `_x0063_`.
 

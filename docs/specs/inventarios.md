@@ -25,6 +25,7 @@ Spec funcional del módulo para la sucursal piloto (Guanajuato · Río Bravo, `i
 - **D3.** Una sola sucursal. No hay selector de sucursal, «Todas las sucursales» ni comparativos. Las columnas `Sucursal` de las listas de la spec se omiten (cada sitio tiene sus listas).
 - **D4.** Existencias, compras, movimientos, conteos físicos, órdenes, transferencias y mezclas se capturan en la plataforma: todas las `raw_inv_*` son de **captura** y la app las escribe. Recibir una orden suma a `raw_inv_insumo.existencia` y registra el movimiento en `raw_inv_movimiento`. Esto sustituye la lectura «publicada desde el POS» de UX02 §03 «Fuentes» (resuelve P-7 y B-13).
 - **D5.** En Transferencias la sucursal propia es fija (Río Bravo) y la contraparte se elige de `raw_app_sucursal`; es un dato de la solicitud, no un selector de contexto (resuelve P-1).
+- **D6 (Marketplace v1.5).** Las brechas B-01 a B-08 quedaron cerradas con columnas y listas nuevas (`raw_inv_masa_mezcla`, `raw_inv_conteo_semanal_historial`, columnas nuevas en conteo, traspaso, orden de compra, insumo y sucursal). Detalle en `mapeo-listas.md`. Falta desplegar v1.5 en el sitio.
 - **Regla del líder.** El Colaborador no ve costos.
 
 ## 1. Pantallas y navegación
@@ -87,7 +88,7 @@ Propósito: consulta del inventario en cuatro pestañas. Estructura común: G01 
 - **Estados del insumo (G13):** Crítico, Bajo, En pedido, OK, Sobre máximo (ver 3.1).
 - **Cálculos:** estado, cantidad sugerida, valor (existencia × costo promedio), ajuste de harina (4.1 a 4.4).
 - **Roles:** Colaborador (PROTO): ve la pestaña Existencias sin columnas Costo prom. ni Valor, sin indicador de valor en el subtítulo y sin la tarjeta Órdenes por recibir. `ger`, `sup`, `gop`, `adm`: todo.
-- **Datos:** `raw_inv_insumo`, `raw_inv_insumo_categoria`, `raw_inv_almacen`, `raw_inv_unidad` (lectura); `raw_inv_orden_compra`, `raw_inv_orden_compra_partida` (captura: Recibir escribe estado); `raw_inv_insumo` (captura: Recibir suma `existencia`); `raw_inv_movimiento` (captura: movimiento CMP al recibir); `raw_inv_masa_semana` (lectura, ajuste de harina, BRECHA B-10).
+- **Datos:** `raw_inv_insumo`, `raw_inv_insumo_categoria`, `raw_inv_almacen`, `raw_inv_unidad` (lectura); `raw_inv_orden_compra`, `raw_inv_orden_compra_partida` (captura: Recibir escribe `estado`, `recibida`, `recibidaPor`); `raw_inv_insumo` (captura: Recibir suma `existencia`); `raw_inv_movimiento` (captura: movimiento CMP al recibir); `raw_inv_masa_semana` (lectura, ajuste de harina, BRECHA B-10).
 
 #### Pestaña Compras
 
@@ -154,7 +155,7 @@ Propósito: registrar cuántas bolitas de masa salieron de cada mezcla. Fuente: 
 - **Validaciones:** enteros ≥ 0; vacío válido (INV-33 a INV-36).
 - **Cálculos:** Total por columna = suma de valores válidos.
 - **Roles:** `col`, `ger`, `sup` capturan; `adm` solo lectura; `gop` solo lectura según PROTO (spec silente).
-- **Datos:** captura en una lista que **no existe** (BRECHA B-01). Al abrir se cargan las 10 filas vacías o las del día si ya se guardaron.
+- **Datos:** captura en `raw_inv_masa_mezcla` (`fecha`, `mezcla`, `oz17`, `oz10`, `oz5`, `capturadoPor`, `capturadoEl`; llave `fecha` + `mezcla`; B-01 cerrada por D6). Al abrir se cargan las 10 filas vacías o las del día si ya se guardaron.
 - **Notas:** el prototipo habla de «testales» y de un registro por captura con hora y usuario (tabla «Mezclas de hoy», sección 9); la spec habla de «bolitas» y de un registro por mezcla. [C] pendiente de la spec: un registro por día o por turno, y si una mezcla equivale a un bulto de harina.
 - **Widgets:** G01, G02, G10, G06.
 
@@ -174,7 +175,7 @@ Propósito: solicitar el envío de mercancía entre dos sucursales. Fuente: UX02
 - **Estados:** la solicitud nace Solicitada; avanza a Enviada y Recibida desde General › Movimientos (3.3).
 - **Roles:** `sup` y `ger` registran; `col` y `adm` solo lectura; `gop` solo lectura (PROTO).
 - **Datos:** captura `raw_inv_traspaso`, `raw_inv_traspaso_partida`; lectura `raw_app_sucursal`, `raw_inv_insumo`, `raw_inv_unidad`.
-- **Alcance (D3, D5):** la sucursal propia es fija y la contraparte se elige de `raw_app_sucursal`. Es un dato de la solicitud; no hay comparativos ni vistas entre sucursales. `raw_app_sucursal` solo tiene `nombre` (B-06).
+- **Alcance (D3, D5):** la sucursal propia es fija y la contraparte se elige de `raw_app_sucursal`. Es un dato de la solicitud; no hay comparativos ni vistas entre sucursales. `raw_app_sucursal` trae `razonSocial`, `entidad` y `activa` (B-06 cerrada por D6): el selector de contraparte usa solo `activa` = Sí. Las filas de `raw_inv_traspaso_partida` se numeran con `renglon` y pueden llevar `idinsumo` (B-03 cerrada).
 - **Notas del prototipo, no en la spec:** la otra sucursal recibe una notificación (Power Automate) al enviar, confirmar envío y confirmar recepción; la recepción pide folio de factura o remisión, fecha, quién recibió, evidencia fotográfica, partidas recibidas y comentarios (sección 9).
 - **Widgets:** G01, G02, G10, G06.
 
@@ -195,7 +196,7 @@ Propósito: capturar el conteo físico semanal. Fuente: UX02 §02 maqueta, árbo
 - **Estados del conteo:** Borrador, Por revisar, Cerrado, Corregido (3.2). **Estados de línea (G13):** Variación grande, Cero inusual, Posible error de dedo, Excede lo disponible, Resuelta, Sin existencia (3.4).
 - **Cálculos:** avance, alertas y disponible (4.5, 4.6).
 - **Roles:** ver 5.
-- **Datos:** captura `raw_inv_conteo_semanal`, `raw_inv_conteo_semanal_linea` (BRECHA B-02); lectura `raw_inv_insumo`, `raw_inv_insumo_categoria`, `raw_inv_unidad`; datos de referencia `colRef` derivados (BRECHA B-09).
+- **Datos:** captura `raw_inv_conteo_semanal`, `raw_inv_conteo_semanal_linea` (con `conteoId` y `periodo`, B-02 cerrada por D6); lectura `raw_inv_insumo`, `raw_inv_insumo_categoria`, `raw_inv_unidad`; datos de referencia `colRef` derivados (BRECHA B-09).
 - **Widgets:** G01, G02, G10, G13, G14, G15, G16, G06.
 
 ### 2.7 `scrInventarios_ConteoRevision`
@@ -232,7 +233,7 @@ Propósito: resolver alertas, cerrar y corregir el conteo. Fuente: UX02 §02 maq
 - **Validaciones:** INV-58 a INV-60.
 - **Estados:** Por revisar → Cerrado → Corregido (3.2).
 - **Roles:** edición solo `sup` y `ger`. «Registrar entrada» escribe `raw_inv_movimiento` (CMP o TRE) y `raw_inv_insumo.existencia` (D4; el ajuste de existencia es supuesto, P-10). Valor del conteo es un valor monetario: el Colaborador no lo ve (y no llega a esta pantalla, PROTO).
-- **Datos:** `raw_inv_conteo_semanal` (incluye `historial`), `raw_inv_conteo_semanal_linea` (captura); `raw_inv_insumo`, `raw_inv_compra_partida`, `raw_inv_movimiento` (lectura, para el disponible, BRECHA B-09); `raw_inv_movimiento` y `raw_inv_insumo.existencia` (captura al «Registrar entrada», D4; el ajuste de `existencia` es supuesto, P-10).
+- **Datos:** `raw_inv_conteo_semanal`, `raw_inv_conteo_semanal_historial`, `raw_inv_conteo_semanal_linea` (captura); `raw_inv_insumo`, `raw_inv_compra_partida`, `raw_inv_movimiento` (lectura, para el disponible, BRECHA B-09); `raw_inv_movimiento` y `raw_inv_insumo.existencia` (captura al «Registrar entrada», D4; el ajuste de `existencia` es supuesto, P-10).
 - **Widgets:** G01, G02, G09, G10, G13, G14, G15, G06.
 
 ## 3. Estados
@@ -256,7 +257,7 @@ Fuente: UX02 §03 «Estados y reglas de inventario» (EstadosInventario, EstadoI
 | Borrador | Al abrir la pantalla de Conteo si no hay conteo de la semana y el rol captura | `col`, `ger`, `sup` | «Enviar a revisión» → Por revisar |
 | Por revisar | `btnCntRev_Enviar` (guarda EnviadoEl, comentario) | `ger`, `sup` | «Cerrar conteo» (sin pendientes) → Cerrado |
 | Cerrado | `btnCntCie_Cerrar` (guarda CerradoPor, CerradoEl, rol) | Nadie | «Corregir conteo» (`ger`, `sup`) → Corregido |
-| Corregido | Corrección con motivo; versión + 1; fila en historial | Nadie (corrige `ger`, `sup`) | Otra corrección mantiene Corregido |
+| Corregido | Corrección con motivo; versión + 1; fila en `raw_inv_conteo_semanal_historial` | Nadie (corrige `ger`, `sup`) | Otra corrección mantiene Corregido |
 
 Fuente: UX02 §03 «Reglas de conteo…» (EstadosConteo, PuedeCapturar, PuedeEnviar, PuedeCerrar, PuedeCorregir) y «Revisión, cierre y corrección». Un solo conteo por semana (`Periodo` = año × 100 + semana ISO).
 
@@ -317,7 +318,7 @@ real = TestalesSemana / RendimientoReal
 corregida = pos + desc − real
 ```
 
-Todos en bultos con un decimal. «Existencia corregida» en Tema.Error. Si `RendimientoReal` está vacío se muestra «Ejemplo · pendiente de captura». [C] origen de `TestalesSemana` y `RendimientoReal` (UX02 §03 «Ajuste de rendimiento de harina»; BRECHA B-10).
+Todos en bultos con un decimal. «Existencia corregida» en Tema.Error. Si `RendimientoReal` está vacío se muestra «Ejemplo · pendiente de captura». [C] origen de `TestalesSemana` (`RendimientoReal` se deriva de `raw_inv_masa_mezcla`) (UX02 §03 «Ajuste de rendimiento de harina»; BRECHA B-10).
 
 ### 4.5 Conteo
 
@@ -369,27 +370,27 @@ Tipo: **Lectura** (en esa pantalla la app solo lee; por D4 la lista sigue siendo
 | scrInventarios y General › Existencias | `raw_inv_insumo` | Lectura; captura de `existencia` al Recibir (D4) | Sin filtro (≈ 89 filas) |
 | | `raw_inv_movimiento` | Captura (movimiento CMP al Recibir) | Solo escritura |
 | | `raw_inv_insumo_categoria`, `raw_inv_almacen`, `raw_inv_unidad` | Lectura | Sin filtro, catálogos pequeños |
-| | `raw_inv_orden_compra` | Captura | `estado = "Pendiente"`: delegable; columna sin índice, pocas filas |
+| | `raw_inv_orden_compra` | Captura | `estado = "Pendiente"`: delegable; `estado` indexado (`idx`, D6) |
 | | `raw_inv_orden_compra_partida` | Captura | Líneas de órdenes Pendiente (`id_orden in …`): **no delegable** [C] de la spec, aceptable con pocas órdenes abiertas |
 | | `raw_inv_masa_semana` | Lectura | Última semana; BRECHA B-10 |
 | Diálogo de orden | `raw_inv_orden_compra`, `raw_inv_orden_compra_partida` | Captura | Escribe 1 + N filas |
 | | `raw_inv_proveedor` | Lectura | Sin filtro |
-| General › Compras | `raw_inv_compra` | Lectura | `fechaaplicacion >= primer día del mes`: delegable; columna **sin índice** (R-01) |
+| General › Compras | `raw_inv_compra` | Lectura | `fechaaplicacion >= primer día del mes`: delegable; columna indexada (`idx`, D6) |
 | | `raw_inv_compra_partida` | Lectura | `idcompra = …`: delegable; indexada (llave) |
 | General › Movimientos | `raw_inv_movimiento` | Lectura y captura (TRS/TRE al confirmar transferencia, D4) | `fecha >= hoy − 7`: delegable; indexada (llave) |
 | | `raw_inv_movimiento_concepto` | Lectura | Sin filtro |
-| | `raw_inv_traspaso`, `raw_inv_traspaso_partida` | Captura | `envia`/`recibe` de la sucursal: delegable con `=`; columnas sin índice; partida con llave incompleta (B-03) |
-| General › Conteos | `raw_inv_conteo_fisico`, `raw_inv_conteo_fisico_partida` | Lectura | `folio = …`: delegable, indexada; la lista de conteos sin filtro (fecha sin índice, R-01) |
-| scrInventarios_ControlMasa | **BRECHA B-01** | Captura | n/a |
+| | `raw_inv_traspaso`, `raw_inv_traspaso_partida` | Captura | `envia`/`recibe` de la sucursal: delegable con `=`; `estado`, `envia`, `recibe` y `creada` indexadas (`idx`, D6); partida con llave (`id_traspaso`, `renglon`) |
+| General › Conteos | `raw_inv_conteo_fisico`, `raw_inv_conteo_fisico_partida` | Lectura | `folio = …`: delegable, indexada; la lista de conteos sin filtro (`fecha` indexada, `idx`, D6) |
+| scrInventarios_ControlMasa | `raw_inv_masa_mezcla` | Captura | `fecha = hoy`: delegable (llave); una escritura por mezcla |
 | scrInventarios_Transferencia | `raw_inv_traspaso`, `raw_inv_traspaso_partida` | Captura | Escribe 1 + N filas |
-| | `raw_app_sucursal` | Lectura | Sin filtro (B-06) |
+| | `raw_app_sucursal` | Lectura | `activa = true`: delegable, indexada (`idx`) |
 | scrInventarios_Conteo | `raw_inv_conteo_semanal` | Captura | `id_raw = "CS-<año>-<semana>"`: delegable, indexada |
-| | `raw_inv_conteo_semanal_linea` | Captura | Líneas del conteo: **BRECHA B-02** (sin id de conteo); una escritura por cambio |
-| | `raw_inv_insumo`, `raw_inv_insumo_categoria`, `raw_inv_unidad` | Lectura | Catálogo completo; orden de conteo BRECHA B-05 |
+| | `raw_inv_conteo_semanal_linea` | Captura | `conteoId = …`: delegable, llave (`conteoId`, `idinsumo`); `periodo` indexado; una escritura por cambio |
+| | `raw_inv_insumo`, `raw_inv_insumo_categoria`, `raw_inv_unidad` | Lectura | Catálogo completo; `ordenConteo` y `activo` (B-05 cerrada); `activo` indexado |
 | scrInventarios_ConteoCierre | `raw_inv_movimiento`, `raw_inv_insumo` | Captura (Registrar entrada: CMP o TRE; suma `existencia`: supuesto, P-10; D4) | Solo escritura |
 | | `colRef` (SemanaPasada, Promedio4, Compras, Entradas, Salidas) | Lectura, derivada | **BRECHA B-09** |
 | scrInventarios_ConteoRevision | `raw_inv_conteo_semanal` | Captura | Una fila: actualiza estado, comentario, enviadoEl |
-| scrInventarios_ConteoCierre | `raw_inv_conteo_semanal` (`historial` incluido), `raw_inv_conteo_semanal_linea` | Captura | Una fila de conteo; líneas BRECHA B-02 |
+| scrInventarios_ConteoCierre | `raw_inv_conteo_semanal`, `raw_inv_conteo_semanal_historial`, `raw_inv_conteo_semanal_linea` | Captura | Una fila de conteo; líneas y bitácora por `conteoId` |
 
 Mapeo columna por columna y brechas: `mapeo-listas.md`.
 
@@ -466,7 +467,7 @@ Los criterios marcados «[Condicionado a P-n]» o con BRECHA B-nn no se pueden d
 | INV-12 | Cantidad sugerida = Max(stock ideal − existencia − por recibir, stock mínimo). Nunca es menor que el mínimo. | UX02 §03 «CantidadSugerida» ([C] confirmar contra RN-21); §04 #4 |
 | INV-13 | Si no hay insumos Crítico ni Bajo, se muestra el mensaje de lista vacía (lblExist_SinPendientes) en lugar de la tarjeta de filas. | UX02 §03 «Lista vacía» |
 | INV-14 | La tarjeta Órdenes por recibir solo se ve si hay órdenes Pendiente. Cada fila muestra «OC-nnnn · Proveedor», estado «En pedido», sus insumos con cantidad y unidad y «creada el d mmm», de la más antigua a la más reciente, con el botón Recibir. | UX02 §03 «scrInventarios_General · Filtros, recepción y tabla»; §02 Comportamiento «general» (Sin órdenes pendientes) |
-| INV-15 | Recibir marca la orden como Recibida (fecha, hora y usuario) y, por cada renglón, suma la cantidad a `raw_inv_insumo.existencia` y registra en `raw_inv_movimiento` una entrada de concepto CMP (cantidad positiva, costo = costo promedio del insumo, almacén del insumo, referencia «Recepción OC-nnnn · proveedor»). Resta lo mismo de «por recibir», recalcula el estado del insumo y muestra un aviso de éxito «Recibida la orden OC-nnnn». | UX02 §03 «btnFila_Accion.OnSelect» (Recibir); §04 #6, #18; decisiones.md D4 (la app escribe existencia y movimientos); PROTO recepción de orden (movimiento `idconcepto` CMP) (BRECHA B-04: sin columnas Recibida/RecibidaPor) |
+| INV-15 | Recibir marca la orden como Recibida (`estado`, `recibida` con fecha y hora, `recibidaPor`) y, por cada renglón, suma la cantidad a `raw_inv_insumo.existencia` y registra en `raw_inv_movimiento` una entrada de concepto CMP (cantidad positiva, costo = costo promedio del insumo, almacén del insumo, referencia «Recepción OC-nnnn · proveedor»). Resta lo mismo de «por recibir», recalcula el estado del insumo y muestra un aviso de éxito «Recibida la orden OC-nnnn». | UX02 §03 «btnFila_Accion.OnSelect» (Recibir); §04 #6, #18; decisiones.md D4 (la app escribe existencia y movimientos); PROTO recepción de orden (movimiento `idconcepto` CMP) (columnas `recibida` y `recibidaPor`: B-04 cerrada por D6) |
 | INV-16 | La tabla de existencias se filtra al instante y en memoria por: texto en el nombre, Categoría, Almacén y Estado (selección múltiple). La lista de Estado no incluye «En pedido». Limpiar filtros restablece los cuatro controles. El filtro usa G08. | UX02 §03 «galInvGeneral_Existencias.Items», «cbGen_Estado.Items», «btnGen_Limpiar»; §02 Comportamiento «general» |
 | INV-17 | La tabla de existencias muestra Insumo, Categoría, Almacén, Existencia con unidad, Mín., Máx., Costo prom., Valor y Estado (G13), ordenada por descripción. Almacén, Mín. y Valor aparecen desde tablet; Categoría, Máx. y Costo prom. solo en escritorio. Debajo, la línea «Fuente: …». | UX02 §03 «Columnas por tamaño»; §02 maqueta «general» (conInvGeneral_Existencias, lblTabla_Fuente); §04 #8, #9 |
 | INV-18 | La tarjeta Ajuste de rendimiento de harina muestra cuatro datos en bultos: Existencia en el POS = existencia de la harina; Descontado por el POS = testales de la semana ÷ 33; Consumo real = testales ÷ rendimiento real; Existencia corregida = existencia POS + descontado − consumo real (en Tema.Error). Mientras no exista el rendimiento real muestra la etiqueta «Ejemplo · pendiente de captura». | UX02 §03 «Ajuste de rendimiento de harina»; §04 #12; PROTO «Ajuste de rendimiento de harina» (regla del cliente: 1 bulto cada 33 testales) |
@@ -496,7 +497,7 @@ Los criterios marcados «[Condicionado a P-n]» o con BRECHA B-nn no se pueden d
 |---|---|---|
 | INV-28 | Movimientos muestra los movimientos de los últimos 7 días, más recientes primero, con filtros de búsqueda de insumo, Concepto y Almacén. La cantidad lleva signo: + en Tema.Exito y − en Tema.Error, con unidad. | UX02 §03 «Movimientos de los últimos 7 días», «lblMov_Cantidad»; §02 Comportamiento «movs» |
 | INV-29 | La tarjeta Transferencias de mercancía lista las transferencias de la sucursal (folio, fecha, Envía → Recibe, partidas, total, estado G13, acción) con el botón «Nueva transferencia». Una transferencia que espera a la otra sucursal muestra «Espera el envío de …» o «Espera la recepción en …», sin botón. Tocar una transferencia despliega sus partidas y las fechas de solicitud, envío y recepción. | UX02 §02 Comportamiento «movs»; §03 «lblTrf_Espera»; maqueta «movs» |
-| INV-30 | En Movimientos, el botón en línea de una transferencia dice «Confirmar envío» y pasa Solicitada → Enviada si la sucursal piloto es la que envía; dice «Confirmar recepción» y pasa Enviada → Recibida si es la que recibe. Cada confirmación guarda quién y cuándo y, por cada partida, registra en `raw_inv_movimiento` la salida (concepto TRS, cantidad negativa) al confirmar el envío o la entrada (concepto TRE, cantidad positiva) al confirmar la recepción, con costo = precio de la partida y referencia «Transferencia T-nnnn · a <sucursal>» o «· de <sucursal>», y ajusta `raw_inv_insumo.existencia` en el mismo sentido (supuesto, P-10: D4 lo dice solo para Recibir orden). | UX02 §02 Comportamiento «movs»; §03 «btnTrf_Confirmar»; maqueta «movs»; decisiones.md D4; PROTO confirmación de transferencia (`idconcepto` TRS/TRE) (BRECHA B-03: sin columnas de actor) |
+| INV-30 | En Movimientos, el botón en línea de una transferencia dice «Confirmar envío» y pasa Solicitada → Enviada si la sucursal piloto es la que envía; dice «Confirmar recepción» y pasa Enviada → Recibida si es la que recibe. Cada confirmación guarda quién y cuándo (`enviadaPor`/`enviada` o `recibidaPor`/`recibida`) y, por cada partida, registra en `raw_inv_movimiento` la salida (concepto TRS, cantidad negativa) al confirmar el envío o la entrada (concepto TRE, cantidad positiva) al confirmar la recepción, con costo = precio de la partida y referencia «Transferencia T-nnnn · a <sucursal>» o «· de <sucursal>», y ajusta `raw_inv_insumo.existencia` en el mismo sentido (supuesto, P-10: D4 lo dice solo para Recibir orden). | UX02 §02 Comportamiento «movs»; §03 «btnTrf_Confirmar»; maqueta «movs»; decisiones.md D4; PROTO confirmación de transferencia (`idconcepto` TRS/TRE) |
 
 ### scrInventarios_General › Conteos
 
@@ -511,30 +512,30 @@ Los criterios marcados «[Condicionado a P-n]» o con BRECHA B-nn no se pueden d
 |---|---|---|
 | INV-33 | Control de Masa muestra una tabla con 10 filas de mezcla (1 a 10) y columnas 17 oz, 10 oz y 5 oz, y una fila Total que suma cada columna con los valores válidos. Subtítulo «Bolitas obtenidas por mezcla» con la fecha. | UX02 §02 maqueta «masa»; §03 «scrInventarios_ControlMasa» (lblMasa_Total17); §04 #23 |
 | INV-34 | Cada celda acepta solo enteros ≥ 0; vacío es válido. Al salir de una celda inválida se marca con borde Tema.Error y debajo aparece «Mezcla N · X oz: solo números enteros.» (o «no puede ser negativo»). | UX02 §02 Comportamiento «masa»; §03 «ValidarEntero», «lblMasa_Error» |
-| INV-35 | Guardar no guarda y avisa si hay celdas inválidas («Corrige las celdas marcadas en rojo.») o si no hay ninguna mezcla capturada («Captura al menos una mezcla.»). Si pasa, guarda las mezclas del día (fecha de hoy, mezcla, 17, 10 y 5 oz) y muestra «Control de Masa guardado». Limpiar vacía las 10 filas sin guardar. | UX02 §02 Comportamiento «masa»; §03 «btnMasa_Guardar.OnSelect» |
+| INV-35 | Guardar no guarda y avisa si hay celdas inválidas («Corrige las celdas marcadas en rojo.») o si no hay ninguna mezcla capturada («Captura al menos una mezcla.»). Si pasa, guarda en `raw_inv_masa_mezcla` una fila por mezcla capturada (`fecha` de hoy, `mezcla`, `oz17`, `oz10`, `oz5`, `capturadoPor`, `capturadoEl`; llave `fecha` + `mezcla`, un registro por día según C-8) y muestra «Control de Masa guardado». Limpiar vacía las 10 filas sin guardar. | UX02 §02 Comportamiento «masa»; §03 «btnMasa_Guardar.OnSelect» |
 | INV-36 | Roles: Colaborador, Supervisor y Gerente de sucursal capturan; Administrador corporativo solo lee. Gerente de operaciones: la spec no lo dice; el prototipo le da solo lectura. | UX02 §00 Resumen, §04 #25; PROTO `masaEd = !CORP(rol)` |
 
 ### scrInventarios_Transferencia
 
 | ID | Criterio | Fuente |
 |---|---|---|
-| INV-37 | Transferencia fija la sucursal propia (Guanajuato · Río Bravo) como uno de los dos extremos: el usuario indica con un indicador si la propia envía o recibe, y hay un solo selector, el de la contraparte, que se llena de `raw_app_sucursal` (sin incluir la propia; `raw_app_sucursal` no trae marca de activa, B-06). La contraparte es un dato de la solicitud, no un selector de contexto ni un comparativo. Envía y Recibe se guardan como texto en la transferencia. | UX02 §02 Comportamiento «trf»; §03 «btnTrf_Enviar.OnSelect»; decisiones.md D3, D5 |
+| INV-37 | Transferencia fija la sucursal propia (Guanajuato · Río Bravo) como uno de los dos extremos: el usuario indica con un indicador si la propia envía o recibe, y hay un solo selector, el de la contraparte, que se llena de `raw_app_sucursal` (solo `activa` = Sí, sin incluir la propia). La contraparte es un dato de la solicitud, no un selector de contexto ni un comparativo. Envía y Recibe se guardan como texto en la transferencia. | UX02 §02 Comportamiento «trf»; §03 «btnTrf_Enviar.OnSelect»; decisiones.md D3, D5 |
 | INV-38 | En cada renglón (cantidad, unidad, descripción, precio individual, total, quitar), elegir una descripción del catálogo llena la unidad con la presentación y propone el precio con el costo promedio de la sucursal; ambos se pueden cambiar. Agregar renglón añade uno vacío con unidad «Pieza». | UX02 §02 Comportamiento «trf»; §03 «cmbTrf_Descripcion.OnChange» |
 | INV-39 | El total del renglón = cantidad × precio y el total de la transferencia = suma de los renglones; ambos se actualizan al escribir. | UX02 §02 Comportamiento «trf»; §03 «lblTrf_Total», «lblTrf_TotalGeneral»; §04 #24 |
-| INV-40 | Enviar solicitud valida que la contraparte esté elegida («Elige la sucursal que envía y la que recibe.»), que sea distinta de la propia («Deben ser sucursales distintas.») y que haya al menos un renglón; «Una de las dos debe ser tu sucursal» se cumple por construcción. Si pasa, crea la transferencia en estado Solicitada con sus renglones y lleva a General › Movimientos. | UX02 §03 «btnTrf_Enviar.OnSelect»; §02 Comportamiento «trf» |
+| INV-40 | Enviar solicitud valida que la contraparte esté elegida («Elige la sucursal que envía y la que recibe.»), que sea distinta de la propia («Deben ser sucursales distintas.») y que haya al menos un renglón; «Una de las dos debe ser tu sucursal» se cumple por construcción. Si pasa, crea la transferencia en estado Solicitada (`creadaPor`, `creada`) con sus renglones (`renglon` 1 a n, `idinsumo` si el artículo viene del catálogo) y lleva a General › Movimientos. | UX02 §03 «btnTrf_Enviar.OnSelect»; §02 Comportamiento «trf» |
 | INV-41 | Solo el Supervisor y el Gerente de sucursal registran y confirman transferencias. Colaborador y Administrador corporativo las ven en solo lectura (botón deshabilitado). Gerente de operaciones: la spec no lo dice; el prototipo le da solo lectura. | UX02 §02 Comportamiento «trf» (gobernanza §5), §03 «PuedeTransferir»; PROTO `trfEd` |
 
 ### scrInventarios_Conteo
 
 | ID | Criterio | Fuente |
 |---|---|---|
-| INV-42 | Al abrir Conteo se busca el conteo de la semana ISO en curso. Si no existe y el rol puede capturar, se crea en estado Borrador, versión 1. Si no puede capturar y no existe, no se crea. | UX02 §02 Comportamiento «conteo»; §03 «scrInventarios_Conteo · Categorías desplegables y G16» (OnVisible) |
-| INV-43 | La tarjeta Avance del conteo muestra la etiqueta de estado (G13), «N de M insumos contados» (N = líneas guardadas, M = insumos activos del catálogo), una barra de avance (alto 8, radio 4) y «Quedan K insumos vacíos. Puedes enviar el conteo aunque falten.» o «Todo contado.». No hay indicadores Contado, En curso ni Pendiente: la línea vacía es la que falta. | UX02 §02 maqueta y árbol «conteo»; §03 «lblCnt_Ayuda»; §04 #16, #21 |
-| INV-44 | Hay una fila tocable por categoría, en el orden del catálogo, con «N de M insumos» y el número de alertas. Tocarla despliega debajo la tabla de sus insumos; tocarla otra vez la cierra; solo una está abierta a la vez. No hay pantalla por sección ni botón «Abrir». | UX02 §03 «galCnt_Categorias.Items», «btnCategoria.OnSelect»; §02 Comportamiento «conteo»; §04 #14, #15 |
+| INV-42 | Al abrir Conteo se busca el conteo de la semana ISO en curso. Si no existe y el rol puede capturar, se crea en estado Borrador, versión 1 (`capturadoPersona`, `capturadoPor` con el rol, `versionCatalogo`). Si no puede capturar y no existe, no se crea. | UX02 §02 Comportamiento «conteo»; §03 «scrInventarios_Conteo · Categorías desplegables y G16» (OnVisible) |
+| INV-43 | La tarjeta Avance del conteo muestra la etiqueta de estado (G13), «N de M insumos contados» (N = líneas guardadas, M = insumos del catálogo con `activo` = Sí), una barra de avance (alto 8, radio 4) y «Quedan K insumos vacíos. Puedes enviar el conteo aunque falten.» o «Todo contado.». No hay indicadores Contado, En curso ni Pendiente: la línea vacía es la que falta. | UX02 §02 maqueta y árbol «conteo»; §03 «lblCnt_Ayuda»; §04 #16, #21 |
+| INV-44 | Hay una fila tocable por categoría, en el orden del catálogo (`raw_inv_insumo_categoria.orden`; insumos por `ordenConteo`), con «N de M insumos» y el número de alertas. Tocarla despliega debajo la tabla de sus insumos; tocarla otra vez la cierra; solo una está abierta a la vez. No hay pantalla por sección ni botón «Abrir». | UX02 §03 «galCnt_Categorias.Items», «btnCategoria.OnSelect»; §02 Comportamiento «conteo»; §04 #14, #15 |
 | INV-45 | Continuar abre la primera categoría que tenga insumos vacíos y lleva el foco al primer insumo vacío. | UX02 §03 «btnCnt_Continuar.OnSelect»; §02 Comportamiento «conteo» |
 | INV-46 | Cada fila de insumo (G16) muestra el nombre del catálogo (no editable), «Se cuenta en <unidad>», un campo de cantidad con la abreviatura de la unidad y el botón «Sin existencia». Nunca muestra la existencia del sistema ni el consumo esperado. | UX02 §01 G16 CountRow; §03 «G16 · fila de la tabla» |
 | INV-47 | Al salir del campo se valida. No guarda y marca la fila en Tema.Error con el mensaje bajo el insumo si la cantidad: está vacía («Escribe la cantidad o toca Sin existencia.»), es negativa («La cantidad no puede ser negativa.»), no es número («Escribe solo números.»), tiene más de dos decimales («Usa máximo dos decimales.»), tiene decimales en una unidad entera («Se cuenta en enteros, sin decimales.») o supera 99,999 («La cantidad no es válida.»). La coma decimal se acepta como punto. | UX02 §03 «ValidarCantidad»; §02 Comportamiento «conteo»; §04 #20 |
-| INV-48 | Una cantidad válida sin alerta se guarda sola al salir del campo (una línea por insumo con cantidad, sinExistencia, alerta, resuelta = No y el rol de quien capturó); Enter pasa al siguiente insumo. | UX02 §02 Comportamiento «conteo»; §03 «txtFilaConteo_Cantidad.OnChange», «btnCnt_Guardar» |
+| INV-48 | Una cantidad válida sin alerta se guarda sola al salir del campo (una fila de `raw_inv_conteo_semanal_linea` por insumo y conteo: `conteoId`, `periodo`, `idinsumo`, `cantidad`, `sinExistencia`, `alerta`, `resuelta` = No, `capturadoPor` con el rol y `capturadoPersona`); Enter pasa al siguiente insumo. | UX02 §02 Comportamiento «conteo»; §03 «txtFilaConteo_Cantidad.OnChange», «btnCnt_Guardar» |
 | INV-49 | Si hay alerta se abre un diálogo G15 «Confirma la cantidad» sin campo de nota: Corregir regresa al campo; Confirmar guarda con la alerta. Alertas: «dedo» si la cantidad es ≥ 10× o ≤ 1/10 de la semana pasada (con semana pasada > 0); «variacion» si la diferencia con la semana pasada es > 30 % y ≥ 1 unidad; «cero» si la cantidad es 0 y el insumo tuvo semana pasada > 0 y promedio de 4 semanas ≥ 1. Umbrales por validar [C]. | UX02 §03 «AlertaConteo», «UmbralVariacion», «FactorDedo»; §02 Comportamiento «conteo»; §04 #20 |
 | INV-50 | Sin existencia siempre abre G15 de confirmación, sin justificación. Si el insumo normalmente tiene existencia, lo dice y guarda la alerta «Cero inusual». Con el cero confirmado el botón queda presionado; tocarlo otra vez borra la línea y deja el insumo vacío. | UX02 §02 Comportamiento «conteo»; §03 «btnFilaConteo_SinExistencia.OnSelect»; §01 G16 |
 | INV-51 | Una cantidad mayor a lo disponible (disponible = semana pasada + compras + entradas − salidas) se guarda y muestra «Excede lo disponible» (G13 en Tema.Error). No bloquea el envío; el Supervisor la resuelve al cerrar. No se guarda en la línea: se calcula. | UX02 §03 «Disponible», «EstadosLineaConteo»; §02 Comportamiento «conteo»; §04 #22 |
@@ -547,16 +548,16 @@ Los criterios marcados «[Condicionado a P-n]» o con BRECHA B-nn no se pueden d
 |---|---|---|
 | INV-54 | Revisión y envío muestra «N de M insumos contados» y la tarjeta Falta contar: una fila por categoría con faltantes («Faltan K: tres nombres…») y el botón «Ir a la categoría». El envío sigue disponible aunque falten. | UX02 §02 Comportamiento «conteoRev»; maqueta «conteoRev»; §04 #21 |
 | INV-55 | La tarjeta Alertas lista las líneas con alerta (insumo, estado G13, categoría y «Contado N u» o «Sin existencia») con el botón Editar; las alertas se resuelven al cerrar. | UX02 §02 maqueta «conteoRev» (conCntRev_Alertas) |
-| INV-56 | Hay un solo comentario final, opcional, encima del botón «Enviar a revisión». Enviar pide confirmación G15 que indica cuántos insumos quedan vacíos; el botón solo está activo si el rol puede enviar. Al confirmar, el conteo pasa a Por revisar y se guardan quién, cuándo y el comentario. Desde ahí el Colaborador no puede editarlo. | UX02 §02 Comportamiento «conteoRev»; §03 «btnCntRev_Enviar», «PuedeEnviar»; §04 #21 (BRECHA B-07: sin EnviadoPor) |
+| INV-56 | Hay un solo comentario final, opcional, encima del botón «Enviar a revisión». Enviar pide confirmación G15 que indica cuántos insumos quedan vacíos; el botón solo está activo si el rol puede enviar. Al confirmar, el conteo pasa a Por revisar y se guardan quién (`enviadoPor`), cuándo (`enviadoEl`) y el comentario. Desde ahí el Colaborador no puede editarlo. | UX02 §02 Comportamiento «conteoRev»; §03 «btnCntRev_Enviar», «PuedeEnviar»; §04 #21; columnas `enviadoPor`, `enviadoEl` (B-07 cerrada por D6) |
 
 ### scrInventarios_ConteoCierre
 
 | ID | Criterio | Fuente |
 |---|---|---|
 | INV-57 | Cierre del conteo muestra tres indicadores G09: Insumos contados («86 de 89», «3 quedaron vacíos»), Valor del conteo (cantidad × costo promedio) y Alertas por resolver («Bloquean el cierre»). Muestra además el comentario del conteo («Sin comentario.» si no hay) y la fecha y hora del envío. | UX02 §02 maqueta «conteoCie»; §03 «lblCntCie_Comentario» |
-| INV-58 | Una línea es pendiente si tiene alerta sin resolver, o si no es «sin existencia» y su cantidad excede lo disponible. Las alertas de variación, cero o error de dedo tienen «Aceptar» (la marca resuelta con «Aceptada por <rol>») y «Corregir» (pide la cantidad correcta). La línea que excede lo disponible tiene «Registrar entrada» (captura la transferencia o la compra faltante con referencia) y «Corregir»; se resuelve cuando deja de exceder. Cada fila muestra la cuenta del disponible. «Registrar entrada» pide tipo (Transferencia de entrada o Compra sin orden previa), cantidad > 0 y referencia obligatoria (folio de la transferencia o de la factura); escribe en `raw_inv_movimiento` una entrada de concepto TRE (transferencia) o CMP (compra) y suma la cantidad a `raw_inv_insumo.existencia` (supuesto, P-10). | UX02 §02 Comportamiento «conteoCie»; §03 «colPendientes», «btnCntCie_Aceptar», «btnCntCie_Entrada» ; decisiones.md D4; PROTO «Registrar entrada faltante» (tipos traspaso y compra) (BRECHA B-02, B-09) |
-| INV-59 | Cerrar conteo está activo solo si el rol es Supervisor o Gerente de sucursal, el conteo está Por revisar y no hay pendientes. Los insumos vacíos no bloquean y quedan como no contados. Al cerrar pasa a Cerrado y guarda quién, cuándo y con qué rol. Sin pendientes dice «Todo resuelto.»; con pendientes «Resuelve N alertas para cerrar.». | UX02 §02 Comportamiento «conteoCie»; §03 «btnCntCie_Cerrar», «PuedeCerrar»; maqueta «conteoCie» (BRECHA B-07: sin RolCierre) |
-| INV-60 | Corregir conteo, en un conteo Cerrado o Corregido y solo para Supervisor y Gerente de sucursal, pide insumo, cantidad y motivo obligatorio («El motivo es obligatorio.»). Crea una versión nueva (versión + 1), pasa el conteo a Corregido y agrega una fila al historial (versión, insumo, antes, después, motivo, quién, cuándo, rol). El historial se muestra solo si hay versiones. | UX02 §02 Comportamiento «conteoCie»; §03 «btnDlg_GuardarCorreccion.OnSelect», «PuedeCorregir»; §04 #26 (BRECHA B-08) |
+| INV-58 | Una línea es pendiente si tiene alerta sin resolver, o si no es «sin existencia» y su cantidad excede lo disponible. Las alertas de variación, cero o error de dedo tienen «Aceptar» (la marca resuelta con «Aceptada por <rol>» y `resueltaPor`) y «Corregir» (pide la cantidad correcta). La línea que excede lo disponible tiene «Registrar entrada» (captura la transferencia o la compra faltante con referencia) y «Corregir»; se resuelve cuando deja de exceder. Cada fila muestra la cuenta del disponible. «Registrar entrada» pide tipo (Transferencia de entrada o Compra sin orden previa), cantidad > 0 y referencia obligatoria (folio de la transferencia o de la factura); escribe en `raw_inv_movimiento` una entrada de concepto TRE (transferencia) o CMP (compra) y suma la cantidad a `raw_inv_insumo.existencia` (supuesto, P-10). | UX02 §02 Comportamiento «conteoCie»; §03 «colPendientes», «btnCntCie_Aceptar», «btnCntCie_Entrada» ; decisiones.md D4; PROTO «Registrar entrada faltante» (tipos traspaso y compra) (BRECHA B-09) |
+| INV-59 | Cerrar conteo está activo solo si el rol es Supervisor o Gerente de sucursal, el conteo está Por revisar y no hay pendientes. Los insumos vacíos no bloquean y quedan como no contados. Al cerrar pasa a Cerrado y guarda quién (`cerradoPor`), cuándo (`cerradoEl`) y con qué rol (`rolCierre`). Sin pendientes dice «Todo resuelto.»; con pendientes «Resuelve N alertas para cerrar.». | UX02 §02 Comportamiento «conteoCie»; §03 «btnCntCie_Cerrar», «PuedeCerrar»; maqueta «conteoCie»; columna `rolCierre` (B-07 cerrada por D6) |
+| INV-60 | Corregir conteo, en un conteo Cerrado o Corregido y solo para Supervisor y Gerente de sucursal, pide insumo, cantidad y motivo obligatorio («El motivo es obligatorio.»). Crea una versión nueva (versión + 1), pasa el conteo a Corregido y agrega una fila a `raw_inv_conteo_semanal_historial` (`conteoId`, `version`, `idinsumo`, `antes`, `despues`, `motivo`, `por`, `el`, `rol`). El historial se muestra solo si hay versiones. | UX02 §02 Comportamiento «conteoCie»; §03 «btnDlg_GuardarCorreccion.OnSelect», «PuedeCorregir»; §04 #26; lista `raw_inv_conteo_semanal_historial` (B-08 cerrada por D6) |
 
 ### Transversales (todas las pantallas)
 
@@ -603,14 +604,14 @@ Esto **no** son criterios de esta entrega. Se registra para que el líder decida
 | C-5 | Decimales por unidad (criterio inicial: kg, L, galón, medio galón, bulto y lata) y unidades por validar con la sucursal: Chile seco (Sobre), Bladoza, Bolsa de basura (kg) y Harina (bulto) | UX02 §03 «Listas de captura»; §02 datos del catálogo |
 | C-6 | Cargar el Excel real del directorio de sucursales (`CatSucursales`) | UX02 §03 «Listas de captura» |
 | C-7 | Umbrales de alerta (30 %, ×10): propuesta de AntPath por validar con el corporativo | UX02 §03 «Reglas de conteo…» |
-| C-8 | Control de Masa: registro por día o por turno, y si una mezcla equivale a un bulto de harina | UX02 §03 «Listas de captura» |
+| C-8 | Control de Masa: registro por día o por turno (la llave de `raw_inv_masa_mezcla` asume por día; si es por turno se agrega `turno`), y si una mezcla equivale a un bulto de harina | UX02 §03 «Listas de captura» |
 | C-9 | Transferencias entre sucursales: sitio común con permisos por elemento (A) o Power Automate que copia y sincroniza (B), decidir antes de F2 | UX02 §03 «Listas de captura» |
 | C-10 | Límite diario de escrituras del conteo (~90–120 por semana y sucursal) | UX02 §03 «scrInventarios_Conteo…» |
 | C-11 | `in` sobre `colOrdenes.ID` no delega: pocas órdenes abiertas | UX02 §03 «scrInventarios · Carga…» |
 
 ### Brechas de datos
 
-Ver `mapeo-listas.md`, sección 4 (B-01 a B-13; B-13 resuelta por D4). Las que bloquean funciones de esta spec: B-01 (Control de Masa), B-02 (líneas de conteo), B-04 (recibir orden con auditoría), B-09 (alertas y «excede lo disponible»). B-13 quedó resuelta por D4.
+Ver `mapeo-listas.md`, sección 4 (B-01 a B-13; B-13 resuelta por D4). Tras D6, B-01 a B-08 están cerradas. Abiertas: B-09 (derivación de `colRef`; bloquea alertas y «excede lo disponible»), B-10 (testales de la harina, [C]) y B-11 (pregunta P-11); B-12 fuera de alcance. B-13 quedó resuelta por D4.
 
 ### Riesgos
 
@@ -620,7 +621,7 @@ Ver `mapeo-listas.md`, sección 4 (B-01 a B-13; B-13 resuelta por D4). Las que b
 | R-B | **Costos visibles por permiso de lista.** Ocultar costos al Colaborador es visual; el dato viaja en las mismas listas (`mapeo-listas.md` R-03) | Líder |
 | R-C | **Token `Tema.Grid`.** UX02 lo usa en la barra de avance y el prototipo en `C.grid`, pero UX01 «Tokens globales» no lo define | UX02 §02 árbol «conteo»; UX01 |
 | R-D | **Diferencia entre texto y fórmula** en el orden del detalle de conteos físicos (texto «de mayor a menor valor», fórmula ascendente por `Valor`). Se tomó la fórmula | UX02 §02 «conteos» frente a §03 |
-| R-E | **Volumen.** `raw_inv_conteo_semanal_linea` ≈ 4,600 filas al año, bajo el umbral de 5,000 pero sin índice por conteo (B-02) | UX02 §03 «Listas de captura»; `sharepoint/README.md` |
+| R-E | **Volumen.** `raw_inv_conteo_semanal_linea` ≈ 4,600 filas al año, bajo el umbral de 5,000; la llave (`conteoId`, `idinsumo`) y el índice `periodo` (D6) permiten filtrar por conteo | UX02 §03 «Listas de captura»; `sharepoint/README.md` |
 | R-F | **Id del estado de alerta de conteo.** UX02 usa `cerou` en `EstadosLineaConteo` y `cero` en `AlertaConteo` y `InvConteoLinea.Alerta`. Se usa `cero` en esta spec | UX02 §03 |
 | R-G | **Variable del diálogo de orden.** UX02 pone `locDlg = "crear"` en `btnCard_Toque` pero el diálogo se muestra con `locDlg = "orden"` | UX02 §03 «galInv_Accesos» frente a «dialogo-orden.fx» |
 | R-H | **Actualizaciones concurrentes de existencia.** Recibir, confirmar transferencias y «Registrar entrada» modifican `raw_inv_insumo.existencia` desde sesiones distintas; escribir con el valor leído al abrir la pantalla pierde cambios. Regla: leer la fila fresca con `LookUp` delegable por `idinsumo` justo antes del `Patch`, y sumar sobre ese valor. Debe resolverse antes de desbloquear INV-15, INV-30 e INV-58 | D4; CLAUDE.md (regla Power Fx) |
@@ -630,7 +631,8 @@ Ver `mapeo-listas.md`, sección 4 (B-01 a B-13; B-13 resuelta por D4). Las que b
 | # | Pregunta |
 |---|---|
 | P-1 | **Cerrada por D5.** Sucursal propia fija; contraparte desde `raw_app_sucursal` |
-| P-2 | ¿Control de Masa y Conteo se construyen con la lista que falta (B-01, B-02) o se espera al backend? |
+| P-2 | Control de Masa y Conteo: las listas ya están definidas (D6, v1.5) pero no desplegadas en el sitio. ¿Se construye ya contra el esquema o se espera al despliegue? Hoy bloquea el guardado de Control de Masa (INV-35, junto con C-8) |
+| P-11 | B-11: en el piloto cada insumo tiene un solo `idalmacen`. ¿Se acepta un almacén por insumo, o se necesita existencia por insumo y almacén? |
 | P-3 | ¿El Colaborador puede ordenar (botón «Ordenar») y recibir órdenes? La spec no restringe; PROTO le oculta los accesos pero deja «Ordenar» visible en la lista de atención. ¿Quién recibe? |
 | P-4 | ¿El Colaborador ve valores monetarios en la pestaña Conteos (PROTO no los oculta)? La regla del líder dice que no |
 | P-5 | ¿`gop` y `adm` entran a scrInventarios_ConteoCierre en solo lectura? La spec dice que `adm` «L» en el conteo; PROTO no muestra el botón a quien no puede cerrar |

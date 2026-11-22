@@ -1,5 +1,7 @@
 # Mapeo de listas · Inventarios y Compras
 
+Marketplace v1.5 (D6, commit bbfcf48): las brechas B-01 a B-08 quedaron cerradas con columnas y listas nuevas (`sharepoint/README.md`, sección Cambios). Este mapeo ya las refleja.
+
 Traduce cada lista o colección que nombran DPZ-UX-02 (Inventarios y Compras v1.4) y las globales de DPZ-UX-01 (Menú v1.2) a la lista `raw_*` del Marketplace (`sharepoint/productos.json`). Regla de origen: `docs/decisiones.md` D1.
 
 Alcance de esta versión: solo el módulo Inventarios y Compras. Las listas de Ventas, Franquicias y Análisis se mapean en sus propias entregas.
@@ -16,36 +18,36 @@ Alcance de esta versión: solo el módulo Inventarios y Compras. Las listas de V
 ## Convenciones
 
 - **Una lista por sucursal.** Ninguna lista `raw_inv_*` tiene columna `Sucursal` ni `idempresa` (sí existen en otros dominios: `raw_pos_*.idempresa`, `raw_app_auditoria*.sucursal`). El kit de activación crea las mismas listas en el sitio de cada sucursal (UX02 §03, bloque «Listas de captura en SharePoint»). Por eso se omite el filtro `Sucursal = varSucursal` de las fórmulas de la spec (decisión D3: una sola sucursal, Guanajuato · Río Bravo).
-- **Nombres internos.** Atributos reservados de SharePoint llevan sufijo `_raw` (`Deploy-Listas.ps1`, lista `$Reservados`). En este módulo: `id` → `id_raw` (en `raw_inv_insumo_categoria`, `raw_inv_conteo_semanal`, `raw_inv_orden_compra`, `raw_inv_traspaso`) y `version` → `version_raw` (en `raw_inv_conteo_semanal`). El nombre visible no cambia. En `raw_app_receta_producto` la columna `c` se guardó como `_x0063_` (`sharepoint/README.md`, sección Despliegues).
-- **Tipos.** Todo texto es una línea de 255 caracteres salvo `referencia`, `comentarios`, `comentario`, `historial` y `resolucion` (varias líneas). `estado` y `alerta` son texto, no columnas de elección: la validación de valores la hace la app.
+- **Nombres internos.** Atributos reservados de SharePoint llevan sufijo `_raw` (`Deploy-Listas.ps1`, lista `$Reservados`). En este módulo: `id` → `id_raw` (en `raw_inv_insumo_categoria`, `raw_inv_conteo_semanal`, `raw_inv_orden_compra`, `raw_inv_traspaso`) y `version` → `version_raw` (en `raw_inv_conteo_semanal` y `raw_inv_conteo_semanal_historial`). El nombre visible no cambia. En `raw_app_receta_producto` la columna `c` se guardó como `_x0063_` (`sharepoint/README.md`, sección Despliegues).
+- **Tipos.** Todo texto es una línea de 255 caracteres salvo `referencia`, `comentarios`, `comentario`, `historial` (ya no se escribe, ver B-08) y `resolucion` (varias líneas). `estado` y `alerta` son texto, no columnas de elección: la validación de valores la hace la app.
 - **Captura / lectura / publicación.** CLAUDE.md: una lista es de captura (la escribe la app) o de publicación (la escribe Python por Graph), nunca de las dos. La columna «Uso» de cada tabla indica cómo la usa esta app. **Origen (D4):** todas las `raw_inv_*` son de captura y la app las escribe (existencia, compras, movimientos, conteos físicos, órdenes, transferencias, mezclas); del POS solo se leen ventas, cortes y catálogo de productos. UX02 §03 «Fuentes» las presenta como publicación del POS: esa parte de la spec se sustituye (tabla 1.1). La columna «Uso» de cada tabla indica solo lo que **esta spec** hace con la lista. Por D4 el JSON no necesita declararlo: todas las `raw_inv_*` son de captura.
 - **Derivado.** Columna que la spec trae calculada o por unión y que `raw_*` no guarda (CLAUDE.md: raw es copia fiel, sin columnas calculadas). La app la calcula. Delegación: `LookUp(lista, columna = valor)` y `Filter` con `=`/`>=` sí delegan contra SharePoint; no delegan `AddColumns`, el `LookUp` anidado por fila ni `in`. Esas uniones se evalúan en memoria y son aceptables solo con los volúmenes pequeños indicados.
-- **Índices.** `Deploy-Listas.ps1` indexa solo las columnas de la llave (`pk`) y la de carga incremental (`inc`, vacía en todas las listas de inventario). Una columna de fecha que no es llave no está indexada. Ver Riesgos R-01.
+- **Índices.** `Deploy-Listas.ps1` indexa las columnas de la llave (`pk`), la de carga incremental (`inc`) y las del campo `idx` de `productos.json` (máximo 20 por lista). R-01 queda atendido: el campo `idx` de cada lista indica sus índices adicionales (sección 5).
 
 ## 1. Resumen
 
 | Lista en la spec | Lista `raw_*` que la sustituye | Uso en esta app | Cobertura |
 |---|---|---|---|
-| `pubCatInsumos` | `raw_inv_insumo` + `raw_inv_insumo_categoria` | Lectura | Parcial (B-05) |
+| `pubCatInsumos` | `raw_inv_insumo` + `raw_inv_insumo_categoria` | Lectura | Completa (B-05 cerrada) |
 | `CatUnidades` | `raw_inv_unidad` | Lectura | Completa |
-| `CatSucursales` | `raw_app_sucursal` | Lectura | Parcial (B-06) |
-| `pubInvExistencia` | `raw_inv_insumo` + `raw_inv_almacen` | Lectura y captura de `existencia` (D4) | Parcial (B-11) |
+| `CatSucursales` | `raw_app_sucursal` | Lectura | Completa (B-06 cerrada) |
+| `pubInvExistencia` | `raw_inv_insumo` + `raw_inv_almacen` | Lectura y captura de `existencia` (D4) | Parcial (B-11 abierta: pregunta al líder) |
 | `pubInvCompra` | `raw_inv_compra` + `raw_inv_proveedor` | Lectura | Completa |
 | `pubInvCompraDetalle` | `raw_inv_compra_partida` | Lectura | Completa |
 | `pubInvMovimiento` | `raw_inv_movimiento` + `raw_inv_movimiento_concepto` | Lectura y captura (D4) | Completa |
 | `pubInvConteo` | `raw_inv_conteo_fisico` | Lectura | Completa (con derivados) |
 | `pubInvConteoDetalle` | `raw_inv_conteo_fisico_partida` | Lectura | Completa (con derivados) |
 | `ProveedoresSucursal` | `raw_inv_proveedor` | Lectura | Completa (solo nombre, UX02 §04 #7) |
-| `OrdenesCompra` | `raw_inv_orden_compra` | Captura | Parcial (B-04) |
-| `OrdenesCompraLinea` | `raw_inv_orden_compra_partida` | Captura | Completa |
-| `InvConteo` | `raw_inv_conteo_semanal` | Captura | Parcial (B-07) |
-| `InvConteoLinea` | `raw_inv_conteo_semanal_linea` | Captura | Parcial (B-02) |
-| `InvConteoHistorial` | `raw_inv_conteo_semanal.historial` (columna JSON) | Captura | Parcial (B-08) |
-| `InvControlMasa` | Ninguna | Captura | **BRECHA** (B-01) |
-| `InvTransferencia` | `raw_inv_traspaso` | Captura | Parcial (B-03) |
-| `InvTransferenciaLinea` | `raw_inv_traspaso_partida` | Captura | Parcial (B-03) |
-| `colRef` (SemanaPasada, Promedio4, Compras, Entradas, Salidas) | Ninguna (derivada) | Lectura | **BRECHA** (B-09) |
-| `TestalesSemana`, `RendimientoReal` (ajuste de harina) | `raw_inv_masa_semana` (parcial) | Lectura | **BRECHA** (B-10) |
+| `OrdenesCompra` | `raw_inv_orden_compra` | Captura | Completa (B-04 cerrada) |
+| `OrdenesCompraLinea` | `raw_inv_orden_compra_partida` | Captura | Completa (con `cantidadRecibida`, B-04) |
+| `InvConteo` | `raw_inv_conteo_semanal` | Captura | Completa (B-07 cerrada) |
+| `InvConteoLinea` | `raw_inv_conteo_semanal_linea` | Captura | Completa (B-02 y B-07 cerradas) |
+| `InvConteoHistorial` | `raw_inv_conteo_semanal_historial` | Captura | Completa (B-08 cerrada) |
+| `InvControlMasa` | `raw_inv_masa_mezcla` | Captura | Completa (B-01 cerrada; C-8 abierto) |
+| `InvTransferencia` | `raw_inv_traspaso` | Captura | Completa (B-03 cerrada; fechas sin hora) |
+| `InvTransferenciaLinea` | `raw_inv_traspaso_partida` | Captura | Completa (B-03 cerrada) |
+| `colRef` (SemanaPasada, Promedio4, Compras, Entradas, Salidas) | Ninguna (derivada) | Lectura | **Abierta** (B-09, derivación por definir) |
+| `TestalesSemana`, `RendimientoReal` (ajuste de harina) | `raw_inv_masa_semana` (testales, por confirmar) y `raw_inv_masa_mezcla` (rendimiento, derivado) | Lectura | **Abierta** (B-10, sin columnas) |
 | `EstadosInventario`, `EstadosLineaConteo`, `EstadosConteo`, `EstadosTransferencia`, `AccesosInventario`, `GruposMenu`, `ModulosDpz`, `IconosDpz` | No son listas: constantes de `App › Formulas` | n/a | Sin lista (sección 3) |
 
 ### 1.1 Origen de cada lista (D4)
@@ -58,7 +60,7 @@ UX02 §03 «Fuentes» describe `pubInv*` como publicación del pipeline desde So
 | `raw_inv_insumo_categoria`, `raw_inv_almacen`, `raw_inv_unidad`, `raw_inv_proveedor` | Catálogos del corporativo | Captura | Nada (solo lectura en esta spec) |
 | `raw_inv_movimiento`, `raw_inv_movimiento_concepto` | Publicación desde el POS | Captura | Movimientos (ver abajo) |
 | `raw_inv_compra`, `raw_inv_compra_partida`, `raw_inv_conteo_fisico`, `raw_inv_conteo_fisico_partida` | Publicación desde el POS | Captura | Nada en las pantallas de la spec (P-9) |
-| `raw_inv_orden_compra*`, `raw_inv_conteo_semanal*`, `raw_inv_traspaso*`, `raw_inv_masa_semana` | Captura de la app | Captura | Ver sección 2 |
+| `raw_inv_orden_compra*`, `raw_inv_conteo_semanal*` (incluye `_historial`), `raw_inv_traspaso*`, `raw_inv_masa_mezcla`, `raw_inv_masa_semana` | Captura de la app | Captura | Ver sección 2 |
 
 Escrituras sobre `raw_inv_movimiento` (B-13, resuelta por D4). Los `idconcepto` son los del JSON y del prototipo; las columnas son las de la lista (`fecha`, `idconcepto`, `idinsumo`, `cantidad` con signo, `costo`, `idalmacen`, `referencia`):
 
@@ -87,10 +89,10 @@ Uso: lectura. Fuente de la spec: UX02 §03 «Listas de captura en SharePoint» (
 | `presentacion` | `raw_inv_insumo.presentacion` | Es la unidad de conteo; enlaza con `raw_inv_unidad.unidad` |
 | `Categoria` | `raw_inv_insumo_categoria.nombre` vía `raw_inv_insumo.idcategoria` = `raw_inv_insumo_categoria.id_raw` | Derivado por unión |
 | `OrdenCategoria` | `raw_inv_insumo_categoria.orden` | Orden de despliegue |
-| `OrdenConteo` | — | **BRECHA** B-05 |
-| `Activo` | — | **BRECHA** B-05 |
-| `AplicaA` | — | **BRECHA** B-05 |
-| `VersionCatalogo` | — | **BRECHA** B-05 |
+| `OrdenConteo` | `raw_inv_insumo.ordenConteo` | Cerrada, B-05 (D6) |
+| `Activo` | `raw_inv_insumo.activo` | Cerrada, B-05; indexada (`idx`) |
+| `AplicaA` | `raw_inv_insumo.aplicaA` | Cerrada, B-05 |
+| `VersionCatalogo` | `raw_inv_insumo.versionCatalogo` | Cerrada, B-05 |
 
 Nota: la spec dice que el catálogo no lleva costo (el costo es por sucursal, `insumosdetalle.costopromedio`). En el Marketplace `raw_inv_insumo` junta catálogo, existencia, umbrales y `costopromedio` en una sola lista. El Colaborador no debe ver costos (instrucción del líder; PROTO oculta Costo prom. y Valor para `col`), así que el ocultamiento queda en la app, no en el dato. Ver Riesgos R-03.
 
@@ -112,11 +114,11 @@ Uso: lectura. Fuente: UX02 §03 y pantalla Transferencia (UX02 §03 «Transferen
 | Spec | Raw | Nota |
 |---|---|---|
 | `Sucursal` | `nombre` | Llave |
-| `RazonSocial` | — | **BRECHA** B-06 |
-| `Estado` | — | **BRECHA** B-06 |
-| `Activa` | — | **BRECHA** B-06 |
+| `RazonSocial` | `razonSocial` | Cerrada, B-06 (D6) |
+| `Estado` | `entidad` | Cerrada, B-06: es el estado de la república, no el estado operativo; el operativo es `activa` |
+| `Activa` | `activa` | Cerrada, B-06; booleano indexado (`idx`) |
 
-Por D5 la sucursal propia es fija y la contraparte de una transferencia se elige de esta lista con un solo selector (dato de la solicitud, sin comparativos, D3). B-06: sin `Activa`, no se pueden filtrar las sucursales activas.
+Por D5 la sucursal propia es fija y la contraparte de una transferencia se elige de esta lista con un solo selector (dato de la solicitud, sin comparativos, D3). Con B-06 cerrada, el selector de contraparte filtra `activa = true` (delegable, indexada) y excluye la sucursal propia.
 
 ### 2.4 `pubInvExistencia` → `raw_inv_insumo` + `raw_inv_almacen`
 
@@ -217,11 +219,12 @@ Uso: **captura** (la escribe la app; la lista está vacía en el snapshot). Fuen
 | `Title` («OC-0007») | `id` | `id_raw` | Formato OC-0000 |
 | `Proveedor` | `proveedor` | | Nombre del proveedor |
 | `Sucursal` | — | | No aplica (una lista por sucursal) |
-| `Estado` (Pendiente, Recibida) | `estado` | | La spec solo usa Pendiente y Recibida. PROTO usa además Por aprobar y Rechazada (B-04) |
-| `Creada` (Now()) | `creada` | | El raw es solo fecha, sin hora |
+| `Estado` (Pendiente, Recibida) | `estado` | | La spec solo usa Pendiente y Recibida. PROTO usa además Por aprobar y Rechazada. Indexada (`idx`) |
+| `Creada` (Now()) | `creada` | | El raw es solo fecha, sin hora. Indexada (`idx`) |
 | `CreadaPor` (User().Email) | `creo` | | Texto |
-| `Recibida` | — | | **BRECHA** B-04 |
-| `RecibidaPor` | — | | **BRECHA** B-04 |
+| `Recibida` | `recibida` | | Cerrada, B-04 (D6): fecha y hora |
+| `RecibidaPor` | `recibidaPor` | | Cerrada, B-04 |
+| (no está en la spec) | `aprobadaPor`, `aprobadaEl`, `foliofactura`, `evidencia` | | Cerrada, B-04 (D6): aprobación y recepción del prototipo (folio de factura, referencia a la evidencia). Fuera del alcance de UX02 hasta decidir P-6 |
 | (no está en la spec) | `entrega`, `elaboro`, `comentarios`, `origen`, `ajuste` | | Vienen de PROTO v2 (`Crear orden`): fecha de entrega solicitada, quién elaboró, comentarios, origen (manual o sugerida), ajuste % de la sugerida |
 
 ### 2.12 `OrdenesCompraLinea` → `raw_inv_orden_compra_partida`
@@ -235,6 +238,7 @@ Uso: captura.
 | `Insumo` | — | Derivado: `raw_inv_insumo.descripcion` |
 | `Cantidad` | `cantidad` | |
 | `Unidad` | `unidad` | |
+| (no está en la spec) | `cantidadRecibida` | Cerrada, B-04 (D6): cantidad realmente recibida, del prototipo |
 
 La llave del JSON es (`id_orden`, `idinsumo`): coincide con la regla de la spec «un insumo no se repite» en una orden (UX02 §02 Comportamiento, Orden de compra).
 
@@ -245,20 +249,20 @@ Uso: **captura**. Fuente: UX02 §03 «Listas de captura en SharePoint».
 | Spec | Raw | Interno | Nota |
 |---|---|---|---|
 | `Title` («CS-2026-43») | `id` | `id_raw` | Formato CS-AAAA-SS |
-| `Periodo` (202643, único) | — | | Derivado: `anio` × 100 + `semana`. Ninguna columna es única (Deploy-Listas) |
+| `Periodo` (202643, único) | — | | Derivado: `anio` × 100 + `semana` (`anio`, `semana` y `estado` están indexadas, `idx`). La unicidad la garantiza la app; SharePoint no la impone |
 | `Semana` | `semana` | | |
 | `Del`, `Al` (fecha) | `del`, `al` | | El raw los guarda como **texto**, no fecha (en PROTO, «19 oct») |
 | `Estado` | `estado` | | Texto: Borrador, Por revisar, Cerrado, Corregido |
 | `Version` | `version` | `version_raw` | |
-| `VersionCatalogo` | — | | **BRECHA** B-07 |
+| `VersionCatalogo` | `versionCatalogo` | | Cerrada, B-07 (D6) |
 | `Comentario` | `comentario` | | |
-| `CapturadoPor` | `capturadoPor` | | El raw dice «Rol que capturó»; la spec guarda la persona (B-07) |
-| `EnviadoPor` | — | | **BRECHA** B-07 |
+| `CapturadoPor` | `capturadoPersona` | | Cerrada, B-07: persona. `capturadoPor` conserva el **rol** (equivale a `CapturadoComo`) |
+| `EnviadoPor` | `enviadoPor` | | Cerrada, B-07 |
 | `EnviadoEl` | `enviadoEl` | | |
 | `CerradoPor` | `cerradoPor` | | |
 | `CerradoEl` | `cerradoEl` | | |
-| `RolCierre` | — | | **BRECHA** B-07 |
-| (no está en la spec) | `historial` | | Columna `lista` (JSON): ver 2.15 |
+| `RolCierre` | `rolCierre` | | Cerrada, B-07 |
+| (no está en la spec) | `historial` | | Columna `lista` (JSON) que **ya no se escribe**: la bitácora vive en `raw_inv_conteo_semanal_historial` (2.15) |
 
 ### 2.14 `InvConteoLinea` → `raw_inv_conteo_semanal_linea`
 
@@ -266,28 +270,50 @@ Uso: **captura**.
 
 | Spec | Raw | Nota |
 |---|---|---|
-| `ConteoId` | — | **BRECHA** B-02 |
-| `Periodo` | — | **BRECHA** B-02 |
-| `IdInsumo` | `idinsumo` | La única columna de llave del JSON |
+| `ConteoId` | `conteoId` | Cerrada, B-02 (D6): referencia a `raw_inv_conteo_semanal.id_raw` |
+| `Periodo` | `periodo` | Cerrada, B-02: entero AAAASS; indexada (`idx`) |
+| `IdInsumo` | `idinsumo` | Llave nueva: (`conteoId`, `idinsumo`) |
 | `Categoria` | — | Derivado: `raw_inv_insumo.idcategoria` |
 | `Cantidad` | `cantidad` | |
 | `SinExistencia` | `sinExistencia` | |
 | `Alerta` (variacion, cero, dedo, vacío) | `alerta` | Texto |
 | `Resuelta` | `resuelta` | |
 | `Resolucion` | `resolucion` | |
-| `ResueltaPor` | — | Sin columna (B-07) |
-| `CapturadoPor` (persona) | `capturadoPor` | El raw dice «Rol que capturó» |
-| `CapturadoComo` (rol) | `capturadoPor` | Mismo campo: solo hay uno |
+| `ResueltaPor` | `resueltaPor` | Cerrada, B-07 |
+| `CapturadoPor` (persona) | `capturadoPersona` | Cerrada, B-07 |
+| `CapturadoComo` (rol) | `capturadoPor` | Conserva el rol |
 
 «Excede lo disponible» se calcula, no se guarda (UX02 §03).
 
-### 2.15 `InvConteoHistorial` → `raw_inv_conteo_semanal.historial`
+### 2.15 `InvConteoHistorial` → `raw_inv_conteo_semanal_historial`
 
-Uso: captura. La spec tiene una lista aparte con una fila por corrección: `ConteoId, Version, IdInsumo, Antes, Despues, Motivo, Por, El, Rol`. El Marketplace solo tiene la columna `historial` («Bitácora», tipo `lista`: varias líneas con JSON) dentro del encabezado. PROTO la usa con la forma `{version, insumo, antes, despues, motivo, por, el}` (función de corrección, `CS.historial.unshift`). Faltan `IdInsumo` (queda el nombre) y `Rol`. Ver B-08.
+Uso: captura. Una fila por corrección de un conteo cerrado (cierra B-08, D6). La columna `historial` de `raw_inv_conteo_semanal` ya no se escribe; la bitácora que manda es esta lista. Llave: (`conteoId`, `version`, `idinsumo`).
 
-### 2.16 `InvControlMasa` → ninguna
+| Spec | Raw | Interno | Nota |
+|---|---|---|---|
+| `ConteoId` | `conteoId` | | |
+| `Version` | `version` | `version_raw` | Versión resultante del conteo |
+| `IdInsumo` | `idinsumo` | | |
+| `Antes` | `antes` | | |
+| `Despues` | `despues` | | |
+| `Motivo` | `motivo` | | Obligatorio (lo valida la app) |
+| `Por` | `por` | | |
+| `El` | `el` | | Fecha y hora |
+| `Rol` | `rol` | | |
 
-Uso: captura. Spec: una fila por mezcla con `Fecha`, `Mezcla` (1 a 10), `Oz17`, `Oz10`, `Oz5` (enteros ≥ 0), `CapturadoPor`, `CapturadoEl` (UX02 §03). La única lista de masa del Marketplace es `raw_inv_masa_semana` (`s` fecha del lunes, `cajas`, `bol`; descripción del JSON: «Cajas y bolsas de masa capturadas por semana»): es captura con grano **semanal**, no diaria por mezcla ni por tamaño. **BRECHA** B-01.
+### 2.16 `InvControlMasa` → `raw_inv_masa_mezcla`
+
+Uso: captura. Cierra B-01 (D6). Una fila por mezcla y día; llave (`fecha`, `mezcla`).
+
+| Spec | Raw | Nota |
+|---|---|---|
+| `Fecha` | `fecha` | Solo fecha |
+| `Mezcla` (1 a 10) | `mezcla` | Entero |
+| `Oz17`, `Oz10`, `Oz5` | `oz17`, `oz10`, `oz5` | Enteros ≥ 0; la validación la hace la app |
+| `CapturadoPor` | `capturadoPor` | Persona |
+| `CapturadoEl` | `capturadoEl` | Fecha y hora |
+
+C-8 sigue abierto: la llave asume un registro por día; si la captura es por turno, hay que agregar `turno` a la llave. `raw_inv_masa_semana` (`s`, `cajas`, `bol`) es otra lista, de grano semanal; es el candidato para `TestalesSemana` (B-10).
 
 ### 2.17 `InvTransferencia` → `raw_inv_traspaso`
 
@@ -298,10 +324,12 @@ Uso: captura.
 | `Title` («T-0007») | `id` | `id_raw` | |
 | `Envia` | `envia` | | Texto |
 | `Recibe` | `recibe` | | Texto |
-| `Estado` | `estado` | | Solicitada, Enviada, Recibida |
+| `Estado` | `estado` | | Solicitada, Enviada, Recibida. Indexada junto con `envia`, `recibe` y `creada` (`idx`) |
 | `Total` | — | | Derivado: suma de cantidad × precio de las partidas |
-| `CreadaPor`, `EnviadaPor`, `RecibidaPor` | — | | **BRECHA** B-03 |
-| `CreadaEl` | `creada` | | Solo fecha |
+| `CreadaPor` | `creadaPor` | | Cerrada, B-03 (D6) |
+| `EnviadaPor` | `enviadaPor` | | Cerrada, B-03 |
+| `RecibidaPor` | `recibidaPor` | | Cerrada, B-03 |
+| `CreadaEl` | `creada` | | Solo fecha (no se cambió el tipo: migración) |
 | `EnviadaEl` | `enviada` | | Solo fecha |
 | `RecibidaEl` | `recibida` | | Solo fecha |
 | (no está en la spec) | `notificada` | | Fecha de la notificación a la otra sucursal (PROTO: aviso por Power Automate) |
@@ -312,11 +340,12 @@ Uso: captura.
 
 | Spec | Raw | Nota |
 |---|---|---|
-| `TransferenciaId` | `id_traspaso` | Referencia a `raw_inv_traspaso.id_raw`. Es la única columna de llave del JSON (B-03) |
+| `TransferenciaId` | `id_traspaso` | Referencia a `raw_inv_traspaso.id_raw`. Llave nueva: (`id_traspaso`, `renglon`) |
 | `Cantidad` | `cantidad` | |
 | `Unidad` | `unidad` | |
 | `Descripcion` | `descripcion` | «Artículo» |
-| `IdInsumo` (si viene del catálogo) | — | **BRECHA** B-03 |
+| `IdInsumo` (si viene del catálogo) | `idinsumo` | Cerrada, B-03 (D6); vacío si el artículo es libre |
+| (no está en la spec) | `renglon` | Cerrada, B-03: número de renglón dentro del traspaso |
 | `Precio` | `precio` | Oculto al Colaborador |
 | `Total` | — | Derivado: cantidad × precio |
 
@@ -335,30 +364,32 @@ La spec define estas tablas en `App › Formulas`. No se crean listas para ellas
 
 ## 4. Brechas
 
-| ID | Lista(s) de la spec | Qué falta | Impacto | Pantalla afectada |
-|---|---|---|---|---|
-| B-01 | `InvControlMasa` | No hay lista de captura de mezclas (Fecha, Mezcla 1–10, Oz17, Oz10, Oz5, CapturadoPor/El). `raw_inv_masa_semana` es captura de grano semanal (`cajas`, `bol`) | Bloquea guardar | scrInventarios_ControlMasa |
-| B-02 | `InvConteoLinea` | `raw_inv_conteo_semanal_linea` no tiene `ConteoId` ni `Periodo`; su llave es solo `idinsumo` (también lo advierte `sharepoint/README.md`, Pendiente). No se pueden separar las líneas de un conteo de las de otro, ni leer «semana pasada» | Bloquea guardar y leer líneas | Conteo, Revisión, Cierre |
-| B-03 | `InvTransferencia`, `InvTransferenciaLinea` | Sin `CreadaPor`, `EnviadaPor`, `RecibidaPor`; sin `Total`; fechas sin hora; línea sin `IdInsumo`; llave de partida solo `id_traspaso`. Además la spec deja abierto dónde vive la lista cuando la ven dos sucursales (UX02 §03: opción A o B, [C]) | Parcial: se guarda sin actores | Transferencia, General › Movimientos |
-| B-04 | `OrdenesCompra` | Sin `Recibida`, `RecibidaPor`. PROTO v2 agrega aprobación (Por aprobar, Rechazada, quién aprobó), correo de envío y recepción con folio de factura, fecha, quién recibió, evidencia y cantidades recibidas; ninguno tiene columna | Bloquea «Recibir» con auditoría | Diálogo orden, General › Existencias |
-| B-05 | `pubCatInsumos` | Sin `OrdenConteo`, `Activo`, `AplicaA`, `VersionCatalogo` | El orden del conteo y la versión de catálogo no se pueden leer | Conteo |
-| B-06 | `CatSucursales` | Solo `nombre`; faltan `RazonSocial`, `Estado`, `Activa` | Bajo (D3) | Transferencia |
-| B-07 | `InvConteo`, `InvConteoLinea` | Sin `VersionCatalogo`, `EnviadoPor`, `RolCierre`, `ResueltaPor`; `capturadoPor` es el rol, no la persona; `del`/`al` son texto | Parcial: se pierde quién envió y con qué rol cerró | Revisión, Cierre |
-| B-08 | `InvConteoHistorial` | Solo la columna JSON `historial`; sin `IdInsumo` ni `Rol` | Parcial | Cierre |
-| B-09 | `colRef` | `SemanaPasada`, `Promedio4`, `Compras`, `Entradas`, `Salidas` por insumo no existen como lista. Se derivan de conteos cerrados anteriores (requiere B-02), de `raw_inv_compra_partida` y de `raw_inv_movimiento` por concepto. La spec no dice de dónde salen (UX02 §03: «ver Listas») | Bloquea alertas y «Excede lo disponible» | Conteo, Cierre |
-| B-10 | Ajuste de harina | `TestalesSemana` y `RendimientoReal` marcados [C] por la spec. `raw_inv_masa_semana.bol` es el candidato para testales (PROTO lo muestra como «Testales 17 oz»; el JSON lo describe como «Bolsas»). `RendimientoReal` depende de B-01 | La tarjeta queda como «Ejemplo» | General › Existencias |
-| B-11 | `pubInvExistencia` | La spec es una fila por insumo y almacén; `raw_inv_insumo` tiene un solo `idalmacen` por insumo | Medio: un insumo en dos almacenes no se representa | General › Existencias |
-| B-12 | Orden de compra (PROTO v2) | `raw_inv_proveedor` no tiene correo de contacto; PROTO lo necesita para enviar la orden al aprobarla | Fuera de la spec; ver sección 6 | Fuera de UX02 |
-| B-13 | `pubInvExistencia`, `pubInvMovimiento` (escritura) | **Resuelta por D4.** Recibir suma a `raw_inv_insumo.existencia` y registra CMP en `raw_inv_movimiento`; confirmar una transferencia registra TRS/TRE; «Registrar entrada» registra TRE o CMP y suma a la existencia (tabla 1.1). Queda como supuesto que transferencias y «Registrar entrada» también ajusten la existencia | Ninguno | Existencias, Movimientos, Conteo › Cierre |
+Estado tras D6 (Marketplace v1.5): B-01 a B-08 cerradas; B-13 cerrada por D4; B-09 y B-10 abiertas sin columnas; B-11 abierta como pregunta al líder; B-12 fuera de alcance.
 
-Total: 13 brechas, 1 resuelta (B-13) y 12 abiertas.
+| ID | Lista(s) de la spec | Estado y qué la cierra o la mantiene | Impacto | Pantalla afectada |
+|---|---|---|---|---|
+| B-01 | `InvControlMasa` | **Cerrada (D6).** Lista nueva `raw_inv_masa_mezcla` (`fecha`, `mezcla`, `oz17`, `oz10`, `oz5`, `capturadoPor`, `capturadoEl`; llave `fecha, mezcla`). C-8 (día o turno) sigue abierto | Ninguno | scrInventarios_ControlMasa |
+| B-02 | `InvConteoLinea` | **Cerrada (D6).** `raw_inv_conteo_semanal_linea`: `conteoId`, `periodo` (indexado); llave (`conteoId`, `idinsumo`) | Ninguno | Conteo, Revisión, Cierre |
+| B-03 | `InvTransferencia`, `InvTransferenciaLinea` | **Cerrada (D6).** `raw_inv_traspaso`: `creadaPor`, `enviadaPor`, `recibidaPor`. `raw_inv_traspaso_partida`: `renglon`, `idinsumo`; llave (`id_traspaso`, `renglon`). Sin cambio: fechas sin hora y `Total` derivado; opción A o B para dos sitios sigue como C-9 | Ninguno | Transferencia, General › Movimientos |
+| B-04 | `OrdenesCompra` | **Cerrada (D6).** `raw_inv_orden_compra`: `recibida`, `recibidaPor`, `aprobadaPor`, `aprobadaEl`, `foliofactura`, `evidencia`. `raw_inv_orden_compra_partida`: `cantidadRecibida`. El correo del proveedor sigue como B-12 | Ninguno | Diálogo orden, General › Existencias |
+| B-05 | `pubCatInsumos` | **Cerrada (D6).** `raw_inv_insumo`: `ordenConteo`, `activo` (indexado), `aplicaA`, `versionCatalogo` | Ninguno | Conteo |
+| B-06 | `CatSucursales` | **Cerrada (D6).** `raw_app_sucursal`: `razonSocial`, `entidad` (estado de la república, en lugar de `Estado`), `activa` (indexado) | Ninguno | Transferencia |
+| B-07 | `InvConteo`, `InvConteoLinea` | **Cerrada (D6).** `raw_inv_conteo_semanal`: `versionCatalogo`, `enviadoPor`, `rolCierre`, `capturadoPersona`. `raw_inv_conteo_semanal_linea`: `resueltaPor`, `capturadoPersona`. `capturadoPor` conserva el rol; `del`/`al` siguen como texto | Ninguno | Revisión, Cierre |
+| B-08 | `InvConteoHistorial` | **Cerrada (D6).** Lista nueva `raw_inv_conteo_semanal_historial` (`conteoId`, `version`, `idinsumo`, `antes`, `despues`, `motivo`, `por`, `el`, `rol`). La columna `historial` ya no se escribe | Ninguno | Cierre |
+| B-09 | `colRef` | **Abierta, sin columnas (derivado).** `SemanaPasada`, `Promedio4`, `Compras`, `Entradas`, `Salidas` por insumo no existen como lista: la app los calcula de conteos cerrados anteriores (`raw_inv_conteo_semanal_linea` por `periodo`), de `raw_inv_compra_partida` y de `raw_inv_movimiento` por concepto. La spec no dice cómo (UX02 §03: «ver Listas»); falta definir la derivación | Bloquea alertas y «Excede lo disponible» hasta definirla | Conteo, Cierre |
+| B-10 | Ajuste de harina | **Abierta, sin columnas ([C]).** `RendimientoReal` es derivado de `raw_inv_masa_mezcla`; `TestalesSemana` está por definir (candidato `raw_inv_masa_semana.bol`: PROTO lo muestra como «Testales 17 oz», el JSON lo llama «Bolsas») | La tarjeta queda como «Ejemplo» | General › Existencias |
+| B-11 | `pubInvExistencia` | **Abierta: pregunta al líder (P-11).** La spec es una fila por insumo y almacén; en el piloto cada insumo tiene un solo `idalmacen` | Medio: un insumo en dos almacenes no se representa | General › Existencias |
+| B-12 | Orden de compra (PROTO v2) | **Fuera de alcance.** `raw_inv_proveedor` no tiene correo de contacto; PROTO lo necesita para enviar la orden al aprobarla | Fuera de la spec; ver sección 6 | Fuera de UX02 |
+| B-13 | `pubInvExistencia`, `pubInvMovimiento` (escritura) | **Cerrada (D4).** Recibir suma a `raw_inv_insumo.existencia` y registra CMP en `raw_inv_movimiento`; confirmar una transferencia registra TRS/TRE; «Registrar entrada» registra TRE o CMP y suma a la existencia (tabla 1.1). Supuesto P-10: transferencias y «Registrar entrada» también ajustan la existencia | Ninguno | Existencias, Movimientos, Conteo › Cierre |
+
+Total: 13 brechas. Cerradas: 9 (B-01 a B-08 y B-13). Abiertas sin columnas: 2 (B-09, B-10). Pregunta abierta al líder: 1 (B-11, P-11). Fuera de alcance: 1 (B-12).
 
 ## 5. Riesgos de datos y licencia
 
 | ID | Riesgo | Fuente |
 |---|---|---|
-| R-01 | Las columnas de fecha que se filtran (`raw_inv_compra.fechaaplicacion`, `raw_inv_conteo_fisico.fecha`) no son llave ni `inc`, así que no están indexadas. UX02 §03 asume filtros delegables `Fecha >=` e índices. Con pocas filas por sucursal es tolerable; verificar antes de crecer. **Solicitud a backend-dev** (CLAUDE.md, reglas de listas, pide índices en sucursal, fecha operativa y estado): `estado` no está indexado en `raw_inv_orden_compra`, `raw_inv_conteo_semanal` ni `raw_inv_traspaso`, y tampoco `envia`/`recibe` ni `fechaaplicacion`/`fecha`; indexarlos | UX02 §03 «Fuentes»; `Deploy-Listas.ps1` líneas 53–54 |
-| R-02 | Lista de pendientes [C] de la spec, tal cual y sin resolver: frecuencia del corte y retención por lista; confirmar fórmula de sugerida contra RN-21; unidades con decimales (criterio inicial) y las que quedan por validar con la sucursal (Chile seco, Bladoza, Bolsa de basura, Harina); cargar el Excel real de sucursales; umbrales de conteo (30 % y ×10) por validar con el corporativo; registro de masa por día o por turno y si una mezcla equivale a un bulto; opción A o B para transferencias entre sitios; origen de `TestalesSemana` y `RendimientoReal`; límite diario de escrituras (~90–120 por semana y sucursal) | UX02 §03 (comentarios `[C]` de cada bloque) |
+| R-01 | **Atendido (D6).** El campo `idx` de `productos.json` lista los índices adicionales: `raw_inv_orden_compra` (`estado`, `creada`), `raw_inv_conteo_semanal` (`estado`, `anio`, `semana`), `raw_inv_traspaso` (`estado`, `envia`, `recibe`, `creada`), `raw_inv_compra` (`fechaaplicacion`), `raw_inv_conteo_fisico` (`fecha`), `raw_inv_conteo_semanal_linea` (`periodo`), `raw_inv_insumo` (`activo`), `raw_app_sucursal` (`activa`). `Deploy-Listas.ps1` los crea y valida el máximo de 20 por lista. Falta desplegar v1.5 en el sitio; las filas que ya existan con las llaves anteriores deben revisarse | `sharepoint/README.md` sección Cambios v1.5 |
+| R-02 | Lista de pendientes [C] de la spec, tal cual y sin resolver: frecuencia del corte y retención por lista; confirmar fórmula de sugerida contra RN-21; unidades con decimales (criterio inicial) y las que quedan por validar con la sucursal (Chile seco, Bladoza, Bolsa de basura, Harina); cargar el Excel real de sucursales; umbrales de conteo (30 % y ×10) por validar con el corporativo; registro de masa por día o por turno (C-8; la llave de `raw_inv_masa_mezcla` asume por día) y si una mezcla equivale a un bulto; opción A o B para transferencias entre sitios; origen de `TestalesSemana` y `RendimientoReal`; límite diario de escrituras (~90–120 por semana y sucursal) | UX02 §03 (comentarios `[C]` de cada bloque) |
 | R-03 | El costo viaja en el mismo registro que el catálogo (`raw_inv_insumo.costopromedio`, `raw_inv_compra_partida.costo`, `raw_inv_conteo_fisico_partida.costo`, `raw_inv_traspaso_partida.precio`). Ocultarlo al Colaborador es solo visual: un usuario con permiso de lectura a la lista lo ve. Decisión de permisos de SharePoint pendiente | PROTO (CSS `data-dpzrol="col"`); instrucción del líder |
 | R-04 | Licencia: no se detecta un conector premium en lo que usa DPZ-UX-02 (SharePoint y Notify). El aviso a la otra sucursal y a quien aprueba (PROTO, «en Power Automate») requiere Power Automate con conectores estándar (SharePoint, Outlook). Verificar que no pase por HTTP ni por conector premium. El sitio común con permisos por elemento (opción A de transferencias) funciona sin Dataverse | UX02 §03; PROTO «Enviar solicitud»; CLAUDE.md |
 | R-05 | Los filtros con `in` (`OrdenId in colOrdenes.ID`) y los `LookUp`/`AddColumns` entre listas no son delegables. La spec lo declara [C] y se acepta con pocas órdenes abiertas y 89 insumos. No lo es sobre `raw_inv_movimiento` ni `raw_inv_compra_partida` sin filtrar primero por fecha o por `idcompra` | UX02 §03 «scrInventarios · Carga…»; CLAUDE.md (regla Power Fx) |
@@ -376,4 +407,4 @@ PROTO tiene más pestañas que la spec: Tablero, Sugerida, Mezclas, Mermas, Rece
 | Recetas y proveedores aprobados | `raw_app_receta_producto`, `raw_app_receta_ingrediente`, `raw_inv_proveedor` | Columna `c` = `_x0063_` |
 | Orden sugerida (consumo de 15 días − conteo − órdenes en camino, ajuste ±10 %) | `raw_inv_insumo`, `raw_inv_orden_compra` (`origen`, `ajuste`), ventas del POS | No está en DPZ-UX-02 |
 | Consumo teórico vs real (tolerancia ±2.5 %) | Ninguna definida | Fuera de la spec |
-| Aprobación de órdenes (Por aprobar → Pendiente o Rechazada) | `raw_inv_orden_compra.estado` | Ver B-04 |
+| Aprobación de órdenes (Por aprobar → Pendiente o Rechazada) | `raw_inv_orden_compra.estado`, `aprobadaPor`, `aprobadaEl` | Columnas cerradas por B-04 (D6); falta decidir P-6 |
