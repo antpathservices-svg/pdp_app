@@ -1,0 +1,338 @@
+{
+ "version": 1,
+ "descripcion": "Mapeo atributo de lista de SharePoint <- columna del Parquet del volcado (D7/D8). Los tipos salen de productos.json. Atributo sin entrada = sin dato (la lista queda en blanco en esa columna).",
+ "orden_carga": [
+  "raw_inv_unidad",
+  "raw_inv_insumo_categoria",
+  "raw_inv_almacen",
+  "raw_inv_movimiento_concepto",
+  "raw_inv_proveedor",
+  "raw_pos_venta_motivo_cancelacion",
+  "raw_pos_venta_tipo_descuento",
+  "raw_pos_venta_area",
+  "raw_pos_producto_grupo",
+  "raw_pos_producto_subgrupo",
+  "raw_pos_producto_grupo_subgrupo",
+  "raw_pos_producto_paquete",
+  "raw_inv_insumo",
+  "raw_inv_conteo_fisico",
+  "raw_inv_compra",
+  "raw_pos_venta_cancelacion",
+  "raw_inv_compra_partida",
+  "raw_pos_producto",
+  "raw_pos_producto_precio",
+  "raw_pos_producto_subgrupo_producto",
+  "raw_pos_corte_turno",
+  "raw_pos_venta_cuenta",
+  "raw_pos_venta_partida",
+  "raw_inv_movimiento",
+  "raw_inv_conteo_fisico_partida"
+ ],
+ "piloto": {
+  "listas": [
+   "raw_pos_venta_area",
+   "raw_pos_venta_cuenta"
+  ],
+  "limite_filas": {
+   "raw_pos_venta_cuenta": 200
+  }
+ },
+ "listas": {
+  "raw_inv_unidad": {
+   "tabla": "udsmedida",
+   "ordinal": null,
+   "columnas": {
+    "unidad": "idunidad"
+   }
+  },
+  "raw_inv_insumo_categoria": {
+   "tabla": "gruposi",
+   "ordinal": null,
+   "columnas": {
+    "id": "idgruposi",
+    "nombre": "descripcion"
+   }
+  },
+  "raw_inv_almacen": {
+   "tabla": "almacen",
+   "ordinal": null,
+   "columnas": {
+    "idalmacen": "idalmacen",
+    "nombre": "nombre"
+   }
+  },
+  "raw_inv_movimiento_concepto": {
+   "tabla": "conceptos",
+   "ordinal": null,
+   "columnas": {
+    "idconcepto": "idconcepto",
+    "descripcion": "descripcion",
+    "tipo": "tipo"
+   }
+  },
+  "raw_inv_proveedor": {
+   "tabla": "proveedores",
+   "ordinal": null,
+   "columnas": {
+    "idproveedor": "idproveedor",
+    "nombre": "nombre"
+   }
+  },
+  "raw_pos_venta_motivo_cancelacion": {
+   "tabla": "motivoscancelacion",
+   "ordinal": null,
+   "columnas": {
+    "idmotivocancela": "idmotivocancela",
+    "descripcion": "descripcion",
+    "genera_desperdicio": "genera_desperdicio"
+   }
+  },
+  "raw_pos_venta_tipo_descuento": {
+   "tabla": "tipodescuento",
+   "ordinal": null,
+   "columnas": {
+    "idtipodescuento": "idtipodescuento",
+    "desc_tipodescuento": "desc_tipodescuento",
+    "descuento": "descuento"
+   }
+  },
+  "raw_pos_venta_area": {
+   "tabla": "areasrestaurant",
+   "ordinal": null,
+   "columnas": {
+    "idarearestaurant": "idarearestaurant",
+    "descripcion": "descripcion",
+    "idtiposervicio": "idtiposervicio"
+   }
+  },
+  "raw_pos_producto_grupo": {
+   "tabla": "grupos",
+   "ordinal": null,
+   "columnas": {
+    "idgrupo": "idgrupo",
+    "descripcion": "descripcion",
+    "clasificacion": "clasificacion"
+   }
+  },
+  "raw_pos_producto_subgrupo": {
+   "tabla": "subgrupos",
+   "ordinal": null,
+   "columnas": {
+    "idsubgrupo": "idsubgrupo",
+    "descripcion": "descripcion"
+   }
+  },
+  "raw_pos_producto_grupo_subgrupo": {
+   "tabla": "grupossubgrupos",
+   "ordinal": null,
+   "columnas": {
+    "idgrupo": "idgrupo",
+    "idsubgrupo": "idsubgrupo"
+   }
+  },
+  "raw_pos_producto_paquete": {
+   "tabla": "paquetes",
+   "ordinal": null,
+   "columnas": {
+    "idproductopaquete": "idproductopaquete",
+    "idproducto": "idproducto",
+    "cantidad": "cantidad",
+    "idempresa": "idempresa"
+   }
+  },
+  "raw_inv_insumo": {
+   "tabla": "insumos",
+   "ordinal": null,
+   "columnas": {
+    "idinsumo": "idinsumo",
+    "descripcion": "descripcion",
+    "presentacion": "unidad",
+    "idcategoria": "idgruposi"
+   }
+  },
+  "raw_inv_conteo_fisico": {
+   "tabla": "invfisico",
+   "ordinal": null,
+   "columnas": {
+    "folio": "folio",
+    "fecha": "fecha",
+    "idalmacen1": "idalmacen1",
+    "idalmacen2": "idalmacen2",
+    "inventarioteorico1": "inventarioteorico1",
+    "inventariofisico1": "inventariofisico1",
+    "cancelado": "cancelado",
+    "idempresa": "idempresa",
+    "inventarioteorico2": "inventarioteorico2",
+    "inventariofisico2": "inventariofisico2"
+   }
+  },
+  "raw_inv_compra": {
+   "tabla": "compras",
+   "ordinal": null,
+   "columnas": {
+    "idcompra": "idcompra",
+    "folio": "folio",
+    "fechaaplicacion": "fechaaplicacion",
+    "idproveedor": "idproveedor",
+    "foliofactura": "foliofactura",
+    "cancelado": "cancelado",
+    "subtotal": "subtotal",
+    "total": "total",
+    "fechafactura": "fechafactura",
+    "descuento": "descuento",
+    "idempresa": "idempresa"
+   }
+  },
+  "raw_pos_venta_cancelacion": {
+   "tabla": "cancela",
+   "ordinal": null,
+   "columnas": {
+    "cancelaid": "cancelaid",
+    "foliocheque": "foliocheque",
+    "clave": "clave",
+    "cantidad": "cantidad",
+    "precio": "precio",
+    "fecha": "fecha",
+    "idmotivocancela": "idmotivocancela",
+    "idturno_cierre": "idturno_cierre"
+   }
+  },
+  "raw_inv_compra_partida": {
+   "tabla": "comprasmovtos",
+   "ordinal": "renglon_carga",
+   "columnas": {
+    "idcompra": "idcompra",
+    "idinsumo": "idinsumo",
+    "cantidad": "cantidad",
+    "costo": "costo",
+    "importesinimpuestos": "importesinimpuestos",
+    "idalmacen": "idalmacen",
+    "idordencompra": "idordencompra",
+    "descuento": "descuento"
+   }
+  },
+  "raw_pos_producto": {
+   "tabla": "productos",
+   "ordinal": null,
+   "columnas": {
+    "idproducto": "idproducto",
+    "descripcion": "descripcion",
+    "nombrecorto": "nombrecorto",
+    "idgrupo": "idgrupo",
+    "plu": "plu",
+    "usarcomedor": "usarcomedor",
+    "usardomicilio": "usardomicilio",
+    "usarrapido": "usarrapido"
+   }
+  },
+  "raw_pos_producto_precio": {
+   "tabla": "productosdetalle",
+   "ordinal": null,
+   "columnas": {
+    "idproducto": "idproducto",
+    "idempresa": "idempresa",
+    "precio": "precio",
+    "preciosinimpuestos": "preciosinimpuestos",
+    "bloqueado": "bloqueado"
+   }
+  },
+  "raw_pos_producto_subgrupo_producto": {
+   "tabla": "subgruposproductos",
+   "ordinal": null,
+   "columnas": {
+    "idsubgrupo": "idsubgrupo",
+    "idproducto": "idproducto"
+   }
+  },
+  "raw_pos_corte_turno": {
+   "tabla": "turnos",
+   "ordinal": null,
+   "columnas": {
+    "idturnointerno": "idturnointerno",
+    "idturno": "idturno",
+    "idempresa": "idempresa",
+    "idestacion": "idestacion",
+    "apertura": "apertura",
+    "cierre": "cierre"
+   }
+  },
+  "raw_pos_venta_cuenta": {
+   "tabla": "cheques",
+   "ordinal": null,
+   "columnas": {
+    "folio": "folio",
+    "idempresa": "idempresa",
+    "numcheque": "numcheque",
+    "fecha": "fecha",
+    "cierre": "cierre",
+    "idturno": "idturno",
+    "tipodeservicio": "tipodeservicio",
+    "idarearestaurant": "idarearestaurant",
+    "nopersonas": "nopersonas",
+    "pagado": "pagado",
+    "cancelado": "cancelado",
+    "idmotivocancela": "idmotivocancela",
+    "idtipodescuento": "idtipodescuento",
+    "totalarticulos": "totalarticulos",
+    "subtotal": "subtotal",
+    "descuentoimporte": "descuentoimporte",
+    "totalcortesias": "totalcortesias",
+    "total": "total"
+   }
+  },
+  "raw_pos_venta_partida": {
+   "tabla": "cheqdet",
+   "ordinal": null,
+   "columnas": {
+    "foliodet": "foliodet",
+    "movimiento": "movimiento",
+    "idproducto": "idproducto",
+    "cantidad": "cantidad",
+    "precio": "precio",
+    "preciosinimpuestos": "preciosinimpuestos",
+    "preciocatalogo": "preciocatalogo",
+    "descuento": "descuento",
+    "idtipodescuento": "idtipodescuento",
+    "idcortesia": "idcortesia",
+    "modificador": "modificador",
+    "mitad": "mitad",
+    "idproductocompuesto": "idproductocompuesto",
+    "productocompuestoprincipal": "productocompuestoprincipal",
+    "hora": "hora",
+    "idturno_cierre": "idturno_cierre"
+   }
+  },
+  "raw_inv_movimiento": {
+   "tabla": "movsinv",
+   "ordinal": "renglon_carga",
+   "columnas": {
+    "fecha": "fecha",
+    "idconcepto": "idconcepto",
+    "idinsumo": "idinsumo",
+    "cantidad": "cantidad",
+    "costo": "costo",
+    "idalmacen": "idalmacen",
+    "movto": "movto",
+    "foliocheque": "foliocheque",
+    "idcompra": "idcompra",
+    "traspaso": "traspaso",
+    "invfisico": "invfisico",
+    "idturno": "idturno"
+   }
+  },
+  "raw_inv_conteo_fisico_partida": {
+   "tabla": "invfisicomovtos",
+   "ordinal": null,
+   "columnas": {
+    "folio": "folio",
+    "idinsumo": "idinsumo",
+    "existenciaalmacen1": "existenciaalmacen1",
+    "fisicoalmacen1": "fisicoalmacen1",
+    "costo": "costo",
+    "idpresentacion": "idpresentacion",
+    "existenciaalmacen2": "existenciaalmacen2",
+    "fisicoalmacen2": "fisicoalmacen2"
+   }
+  }
+ }
+}
