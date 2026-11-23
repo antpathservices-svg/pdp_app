@@ -1,12 +1,16 @@
 {
   "version": {
     "plataforma": "Plataforma de Gestión Operativa",
-    "version": "v1.5",
+    "version": "v1.6",
     "fase": "En desarrollo",
     "build": "1794284509-c5ba",
     "runtime": "0.2.96",
     "capa": "Raw",
     "cambios": [
+      [
+        "v1.6",
+        "Carga inicial del volcado del POS (D8): columnas y llaves ampliadas en 5 listas raw_inv_*"
+      ],
       [
         "v1.5",
         "Cierre de brechas B-01 a B-08 de Inventarios (D6): columnas nuevas, 2 listas nuevas y campo idx (R-01)"
@@ -1134,12 +1138,12 @@
       "modulo": "Inventarios · Existencias y Mermas",
       "grano": "1 fila por movimiento",
       "estado": "En desarrollo",
-      "pk": "fecha, idconcepto, idinsumo",
+      "pk": "renglon_carga",
       "muestra": null,
-      "filas": null,
+      "filas": 14834,
       "orden": null,
       "inc": null,
-      "nota": null,
+      "nota": "v1.6 D8: columnas agregadas movto, foliocheque, idcompra, traspaso, invfisico, idturno (fuente dbo.movsinv.<columna>). v1.6 D8: columna agregada renglon_carga; llave ahora renglon_carga porque movsinv tiene 103 pares de filas idénticas y movto nulo en 11,031 filas (no hay llave natural). renglon_carga es metadato de carga (no dato del POS): ordinal 1-based de la fila en el volcado (orden del archivo), estable solo para esta carga única; conserva los duplicados reales. renglon_carga solo lo llena la carga inicial (D7/D8); las filas que crea la app (Recibir, transferencias, Registrar entrada) lo dejan vacío y se identifican por el ID de SharePoint; la llave aplica a las filas de la carga inicial. Índices en fecha, idconcepto, idinsumo (umbral de 5,000; los de v1.5 se conservan).",
       "ent": [
         {
           "n": "Movimiento de inventario",
@@ -1185,9 +1189,56 @@
               "texto",
               "Motivo, comentario o folio",
               "app: movsinv.referencia"
+            ],
+            [
+              "movto",
+              "entero",
+              "Número de movimiento",
+              "dbo.movsinv.movto"
+            ],
+            [
+              "foliocheque",
+              "entero",
+              "Folio de cheque",
+              "dbo.movsinv.foliocheque"
+            ],
+            [
+              "idcompra",
+              "entero",
+              "Compra de origen",
+              "dbo.movsinv.idcompra"
+            ],
+            [
+              "traspaso",
+              "entero",
+              "Traspaso de origen",
+              "dbo.movsinv.traspaso"
+            ],
+            [
+              "invfisico",
+              "entero",
+              "Conteo físico de origen",
+              "dbo.movsinv.invfisico"
+            ],
+            [
+              "idturno",
+              "entero",
+              "Turno",
+              "dbo.movsinv.idturno"
+            ],
+            [
+              "renglon_carga",
+              "entero",
+              "Ordinal de la fila en el volcado (metadato de carga)",
+              "metadato de carga D8 (no es columna del POS)"
             ]
           ]
         }
+      ],
+      "idx": [
+        "fecha",
+        "idconcepto",
+        "idinsumo"
       ]
     },
     {
@@ -1251,7 +1302,7 @@
       "filas": null,
       "orden": null,
       "inc": null,
-      "nota": "v1.5 R-01: índice adicional en fecha.",
+      "nota": "v1.5 R-01: índice adicional en fecha. v1.6 D8: columnas agregadas cancelado, idempresa, inventarioteorico2, inventariofisico2 (fuente dbo.invfisico.<columna>).",
       "ent": [
         {
           "n": "Conteo físico",
@@ -1291,6 +1342,30 @@
               "decimal",
               "Valor contado registrado",
               "app: invfisico.inventariofisico1"
+            ],
+            [
+              "cancelado",
+              "booleano",
+              "Cancelado",
+              "dbo.invfisico.cancelado"
+            ],
+            [
+              "idempresa",
+              "texto",
+              "Sucursal",
+              "dbo.invfisico.idempresa"
+            ],
+            [
+              "inventarioteorico2",
+              "decimal",
+              "Valor teórico del segundo almacén",
+              "dbo.invfisico.inventarioteorico2"
+            ],
+            [
+              "inventariofisico2",
+              "decimal",
+              "Valor contado del segundo almacén",
+              "dbo.invfisico.inventariofisico2"
             ]
           ]
         }
@@ -1310,10 +1385,10 @@
       "estado": "En desarrollo",
       "pk": "folio, idinsumo",
       "muestra": null,
-      "filas": null,
+      "filas": 8130,
       "orden": null,
       "inc": null,
-      "nota": null,
+      "nota": "v1.6 D8: columnas agregadas idpresentacion, existenciaalmacen2, fisicoalmacen2 (fuente dbo.invfisicomovtos.<columna>). idpresentacion viene en blanco en el volcado; la llave sigue siendo folio, idinsumo.",
       "ent": [
         {
           "n": "Partida de conteo físico",
@@ -1347,6 +1422,24 @@
               "decimal",
               "Costo unitario",
               "app: invfisicomovtos.costo"
+            ],
+            [
+              "idpresentacion",
+              "texto",
+              "Presentación",
+              "dbo.invfisicomovtos.idpresentacion"
+            ],
+            [
+              "existenciaalmacen2",
+              "decimal",
+              "Existencia del segundo almacén",
+              "dbo.invfisicomovtos.existenciaalmacen2"
+            ],
+            [
+              "fisicoalmacen2",
+              "decimal",
+              "Cantidad contada del segundo almacén",
+              "dbo.invfisicomovtos.fisicoalmacen2"
             ]
           ]
         }
@@ -1588,7 +1681,7 @@
       "filas": null,
       "orden": null,
       "inc": null,
-      "nota": "v1.5 R-01: índice adicional en fechaaplicacion.",
+      "nota": "v1.5 R-01: índice adicional en fechaaplicacion. v1.6 D8: columnas agregadas fechafactura, descuento, idempresa (fuente dbo.compras.<columna>).",
       "ent": [
         {
           "n": "Compra",
@@ -1646,6 +1739,24 @@
               "decimal",
               "Total registrado",
               "app: compras.total"
+            ],
+            [
+              "fechafactura",
+              "fecha-hora",
+              "Fecha de la factura",
+              "dbo.compras.fechafactura"
+            ],
+            [
+              "descuento",
+              "decimal",
+              "Descuento registrado",
+              "dbo.compras.descuento"
+            ],
+            [
+              "idempresa",
+              "texto",
+              "Sucursal",
+              "dbo.compras.idempresa"
             ]
           ]
         }
@@ -1663,12 +1774,12 @@
       "modulo": "Inventarios · Compras",
       "grano": "1 fila por compra e insumo",
       "estado": "En desarrollo",
-      "pk": "idcompra, idinsumo",
+      "pk": "renglon_carga",
       "muestra": null,
       "filas": null,
       "orden": null,
       "inc": null,
-      "nota": null,
+      "nota": "v1.6 D8: columnas agregadas idordencompra, descuento (fuente dbo.comprasmovtos.<columna>). v1.6 D8: columna agregada renglon_carga; llave ahora renglon_carga porque comprasmovtos repite 3 veces idcompra, idinsumo, idalmacen. renglon_carga es metadato de carga (no dato del POS): ordinal 1-based de la fila en el volcado (orden del archivo), estable solo para esta carga única; conserva los duplicados reales. renglon_carga solo lo llena la carga inicial (D7/D8); si la app llega a crear filas (P-9), lo dejan vacío y se identifican por el ID de SharePoint; la llave aplica a las filas de la carga inicial. Índices en idcompra, idinsumo (la app filtra por idcompra).",
       "ent": [
         {
           "n": "Partida de compra",
@@ -1720,9 +1831,31 @@
               "texto",
               "Almacén",
               "app: comprasmovtos.idalmacen"
+            ],
+            [
+              "idordencompra",
+              "entero",
+              "Orden de compra",
+              "dbo.comprasmovtos.idordencompra"
+            ],
+            [
+              "descuento",
+              "decimal",
+              "Descuento registrado",
+              "dbo.comprasmovtos.descuento"
+            ],
+            [
+              "renglon_carga",
+              "entero",
+              "Ordinal de la fila en el volcado (metadato de carga)",
+              "metadato de carga D8 (no es columna del POS)"
             ]
           ]
         }
+      ],
+      "idx": [
+        "idcompra",
+        "idinsumo"
       ]
     },
     {
