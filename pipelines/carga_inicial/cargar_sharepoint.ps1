@@ -35,6 +35,10 @@ param(
     [switch]$Piloto,
     [string[]]$Listas,
     [switch]$Forzar,
+    [string[]]$Reiniciar,
+    [string[]]$Confirmar,
+    [int]$TimeoutSegundos = 300,
+    [ValidateSet('double', 'texto')][string]$NumerosComo = 'double',
     [string]$EnvPath,
     [string]$SiteUrl,
     [string]$ClientId,
@@ -140,8 +144,63 @@ if ($Ejecutar -or $Conectar) {
     if (-not $cfg.SITE_URL -or -not $cfg.CLIENT_ID) { throw 'Faltan SITE_URL / CLIENT_ID (.env o parametros).' }
     Connect-PnPOnline -Url $cfg.SITE_URL -ClientId $cfg.CLIENT_ID -Interactive
     $sesion = $true
+    # PnP.PowerShell 3.x no expone -RequestTimeout en Connect-PnPOnline. Se sube el del contexto CSOM (ms),
+    # pero el lote usa el HttpClient de PnP.Core, cuyo Timeout (100 s) no es configurable: por eso existe el
+    # manejo automatico de timeouts de mas abajo y conviene un TAMANO_LOTE moderado.
+    try { (Get-PnPConnection).Context.RequestTimeout = $TimeoutSegundos * 1000 } catch { Write-Warning "No se pudo subir RequestTimeout: $($_.Exception.Message)" }
 } else {
     try { $null = Get-PnPConnection -ErrorAction Stop; $sesion = $true } catch { $sesion = $false }
+}
+# 429 = no aplicado (rechazo previo a ejecutar). 503/504 y timeouts/red = incierto: se lee ItemCount estable.
+function Test-Throttle([string]$msg) {
+    return ($msg -match '\b429\b|Too Many Requests|TooManyRequests')
+}
+function Test-Red([string]$msg) {
+    return ($msg -match '\b50[34]\b|Service Unavailable|Gateway Time-?out|temporarily unavailable|HttpClient\.Timeout|TaskCanceled|timed out|timeout|request was canceled|HttpRequestException|IOException|SocketException|connection (was )?(reset|closed|aborted)|network|name resolution')
+}
+function Get-ItemCountEstable([string]$lista) {
+    # ItemCount es eventualmente consistente: espera y lee hasta dos lecturas iguales seguidas.
+    Start-Sleep -Seconds 20
+    $prev = -1
+    for ($k = 0; $k -lt 6; $k++) {
+        $c = [int](Get-PnPList -Identity $lista).ItemCount
+        if ($c -eq $prev) { return $c }
+        $prev = $c; Start-Sleep -Seconds 15
+    }
+    return $null
+}
+# ---------- reinicio documentado de una lista en 'incierto'/'error' ----------
+if ($Reiniciar) {
+    if (-not $Ejecutar -or -not $sesion) { throw '-Reiniciar exige -Ejecutar (con sesion).' }
+    foreach ($r in @($Reiniciar | ForEach-Object { $_ -split ',' } | Where-Object { $_ })) {
+        if (-not $estado.listas.ContainsKey($r)) { throw "[$r] no tiene entrada en estado.json: nada que reiniciar." }
+        $ic = [int](Get-PnPList -Identity $r).ItemCount
+        if ($ic -ne 0) { throw "[$r] ItemCount=${ic}: no se reinicia una lista con filas. Revise y vacie manualmente (ver docs/carga-inicial.md)." }
+        if (-not $estado.ContainsKey('reinicios')) { $estado.reinicios = @() }
+        $estado.reinicios = @($estado.reinicios) + @(@{ lista = $r; utc = (Get-Date).ToUniversalTime().ToString('o'); estado_previo = $estado.listas[$r].estado; lotes_previos = @($estado.listas[$r].lotes) })
+        $estado.listas.Remove($r)
+        Save-Estado $estado
+        Write-Host "[$r] reiniciada (ItemCount=0); el intento previo queda en estado.json > reinicios."
+    }
+}
+# ---------- confirmar una lista 'incierto' cuyo ultimo lote no se aplico ----------
+if ($Confirmar) {
+    if (-not $Ejecutar -or -not $sesion) { throw '-Confirmar exige -Ejecutar (con sesion).' }
+    foreach ($r in @($Confirmar | ForEach-Object { $_ -split ',' } | Where-Object { $_ })) {
+        if (-not $estado.listas.ContainsKey($r)) { throw "[$r] no tiene entrada en estado.json." }
+        $x = $estado.listas[$r]
+        if ($x.estado -ne 'incierto') { throw "[$r] estado '$($x.estado)': -Confirmar solo aplica a 'incierto'." }
+        $ic = Get-ItemCountEstable $r
+        if ($null -eq $ic) { throw "[$r] ItemCount no se estabilizo (lecturas cambiantes): reintente en unos minutos. No se cambio nada." }
+        if ($ic -ne [int]$x.filas_cargadas) {
+            throw "[$r] ItemCount=$ic != filas_cargadas=$($x.filas_cargadas): hay que conciliar llaves (ver filas por renglon_carga/llave contra el jsonl) antes de reanudar. No se cambio nada."
+        }
+        if (-not $estado.ContainsKey('confirmaciones')) { $estado.confirmaciones = @() }
+        $estado.confirmaciones = @($estado.confirmaciones) + @(@{ lista = $r; utc = (Get-Date).ToUniversalTime().ToString('o'); item_count = $ic; filas_cargadas = [int]$x.filas_cargadas })
+        $x.estado = 'en_curso'
+        Save-Estado $estado
+        Write-Host "[$r] confirmada: ItemCount=$ic = filas_cargadas; se reanuda desde la fila $($ic + 1)."
+    }
 }
 $modoValida = if ($sesion) { 'sitio' } else { 'productos.json' }
 Write-Host ("Modo: {0} | validacion contra: {1} | lote: {2} | pausa: {3}s | listas: {4}{5}" -f
@@ -160,19 +219,23 @@ function Read-Jsonl([string]$lista, [int]$limite) {
     return , $filas
 }
 function ConvertTo-Valor($v, [string]$tipo) {
-    if ($tipo -eq 'fecha-hora') {
-        return [datetime]::Parse([string]$v, $Inv, [System.Globalization.DateTimeStyles]::AdjustToUniversal -bor [System.Globalization.DateTimeStyles]::AssumeUniversal)
+    # Add-PnPListItem -Batch solo entiende primitivos .NET clasicos: el Int64 que produce ConvertFrom-Json
+    # para los enteros provoca "No se puede convertir un valor primitivo en el tipo esperado 'Edm.String'".
+    switch ($tipo) {
+        'fecha-hora' { return [datetime]::Parse([string]$v, $Inv, [System.Globalization.DateTimeStyles]::AdjustToUniversal -bor [System.Globalization.DateTimeStyles]::AssumeUniversal) }
+        { $_ -in 'entero', 'decimal' } {
+            if ($NumerosComo -eq 'texto') { return ([System.Convert]::ToString($v, $Inv)) }
+            return [double]$v
+        }
+        'booleano' { return [bool]$v }
+        default { return [string]$v }
     }
-    return $v
 }
 
 # ---------- lote con throttling ----------
 function Get-RetryAfter([string]$msg) {
     if ($msg -match 'Retry-After[^\d]*(\d+)') { return [int]$Matches[1] }
     return 0
-}
-function Test-Throttle([string]$msg) {
-    return ($msg -match '\b429\b|\b503\b|throttl|Too Many Requests|temporarily unavailable|TooManyRequests')
 }
 function Send-Lote($nombre, $filasLote, $tipos, $mapaInterno) {
     $b = New-PnPBatch
@@ -193,7 +256,8 @@ function Invoke-ListaCarga($nombre, $filas, $tipos, $mapaInterno, $total) {
     while ($i -lt $filas.Count) {
         $n = [Math]::Min($tam, $filas.Count - $i)
         $grupo = $filas.GetRange($i, $n)
-        $rec = @{ desde = $grupo[0]._ord; hasta = $grupo[$n - 1]._ord; resultado = ''; segundos = 0; reintentos = 0; throttles = 0 }
+        $rec = @{ desde = $grupo[0]._ord; hasta = $grupo[$n - 1]._ord; resultado = ''; segundos = 0; reintentos = 0; throttles = 0; eventos = @() }
+        $redFallos = 0
         $sw = [System.Diagnostics.Stopwatch]::StartNew()
         $hecho = $false
         while (-not $hecho) {
@@ -214,6 +278,27 @@ function Invoke-ListaCarga($nombre, $filas, $tipos, $mapaInterno, $total) {
                         Write-Warning "[$nombre] lote reducido a $n"
                     }
                     if ($rec.reintentos -gt 8) { $rec.resultado = 'error: demasiados reintentos'; break }
+                } elseif (Test-Red $msg) {
+                    $rec.reintentos++; $redFallos++
+                    $antes = [int]$rec.desde - 1
+                    Write-Warning "[$nombre] timeout/red en filas $($rec.desde)-$($rec.hasta): verificando ItemCount ($redFallos de 3)"
+                    $ic = Get-ItemCountEstable $nombre
+                    if ($null -ne $ic -and $ic -eq $antes + $n) {
+                        $hecho = $true; $rec.resultado = 'ok (aplicado pese a timeout; ItemCount confirmado)'
+                        $rec.eventos += , "timeout; ItemCount=$ic = antes+lote: se da por aplicado"
+                    } elseif ($null -ne $ic -and $ic -eq $antes) {
+                        if ($redFallos -ge 3) { $rec.eventos += , "timeout; ItemCount=$ic = antes; 3 intentos agotados"; $rec.resultado = 'error: timeouts repetidos (ItemCount sin cambio, nada aplicado)'; $rec.sinaplicar = $true; break }
+                        $rec.eventos += , "timeout; ItemCount=$ic = antes: no se aplico, se reintenta (intento $redFallos)"
+                        Start-Sleep -Seconds (15 * $redFallos)
+                        if ($redFallos -ge 2 -and $n -gt 10) {
+                            $tam = [Math]::Max(10, [int][Math]::Floor($n / 2)); $n = $tam
+                            $grupo = $filas.GetRange($i, $n); $rec.hasta = $grupo[$n - 1]._ord
+                            Write-Warning "[$nombre] lote reducido a $n"
+                        }
+                    } else {
+                        $rec.eventos += , "timeout; ItemCount=$ic (antes=$antes, lote=$n): no concluyente"
+                        $rec.resultado = "error: timeout con ItemCount=$ic inesperado (antes=$antes, lote=$n): $msg"; break
+                    }
                 } else {
                     $rec.resultado = "error: $msg"; break
                 }
@@ -223,7 +308,7 @@ function Invoke-ListaCarga($nombre, $filas, $tipos, $mapaInterno, $total) {
         $null = $e.lotes.Add($rec)
         if (-not $hecho) {
             # 429/503 agotados: no se aplico nada. Otro error: puede haber filas aplicadas.
-            $e.estado = if ($rec.resultado -like '*reintentos*') { 'error' } else { 'incierto' }
+            $e.estado = if ($rec.resultado -like '*reintentos*' -or $rec.sinaplicar) { 'error' } else { 'incierto' }
             Save-Estado $estado
             Write-Error "[$nombre] $($rec.resultado). Estado: $($e.estado). Verifique ItemCount antes de reanudar."
             return $false
@@ -305,7 +390,7 @@ try {
         # estado previo / guarda
         $desde = 0
         if ($ant) { $desde = [int]$ant.filas_cargadas }
-        if ($ant -and $ant.estado -in 'incierto', 'error') { $fila.accion = "estado '$($ant.estado)': verificar ItemCount y editar estado.json"; if ($Ejecutar) { $fila.problemas += $fila.accion } }
+        if ($ant -and $ant.estado -in 'incierto', 'error') { $fila.accion = "estado '$($ant.estado)': si ItemCount = filas_cargadas use -Ejecutar -Confirmar <lista>; si es 0 y sin filas, -Reiniciar"; if ($Ejecutar) { $fila.problemas += $fila.accion } }
         elseif ($ant -and $desde -ge $filas.Count) { $fila.accion = 'ya cubierta (se omite)'; $fila.estimado_s = 0 }
         elseif ($sesion -and $null -ne $itemCount -and -not $ant -and $itemCount -gt 0) {
             $fila.accion = "BLOQUEADA: ItemCount=$itemCount sin estado previo"

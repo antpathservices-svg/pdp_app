@@ -37,6 +37,22 @@ MAPEO = Path(__file__).with_name("mapeo_listas.json")
 EXCEPCIONES_PK = {"raw_pos_venta_motivo_cancelacion"}
 
 
+def _vacio(v) -> bool:
+    """Regla D8: nulo, "" y, para Si/No, False equivalen a vacio.
+
+    SharePoint no distingue NULL de vacio ni de 0 en Si/No: un booleano omitido en el origen
+    llega como False y no cuenta como diferencia.
+    """
+    return v is None or v == "" or v is False
+
+
+def _k(v) -> str:
+    """Valor de llave comparable: SharePoint devuelve los numeros como double (442431.0)."""
+    if isinstance(v, float) and v.is_integer():
+        return str(int(v))
+    return str(v)
+
+
 def _norm(d: dict) -> dict:
     out = {}
     for k, v in d.items():
@@ -83,14 +99,14 @@ def reconciliar(lista: str, carpeta: Path, pk: list[str], muestra: int, conteos:
     sin_llave = lista in EXCEPCIONES_PK
     if not sin_llave:
         def llave(d):
-            return tuple(str(d.get(k.lower())) for k in pk)
+            return tuple(_k(d.get(k.lower())) for k in pk)
         idx: dict = {}
         for r in sp:
             idx.setdefault(llave(r), []).append(r)
         dup = {k: len(v) for k, v in idx.items() if len(v) > 1}
         if dup:
             res["problemas"].append(f"{len(dup)} llaves repetidas, ej. {list(dup.items())[:3]}")
-        esperadas = {tuple(str(r["v"].get(k)) for k in pk) for r in jl}
+        esperadas = {tuple(_k(r["v"].get(k)) for k in pk) for r in jl}
         faltan, sobran = esperadas - set(idx), set(idx) - esperadas
         if faltan:
             res["problemas"].append(f"{len(faltan)} llaves faltantes, ej. {sorted(faltan)[:3]}")
@@ -102,16 +118,31 @@ def reconciliar(lista: str, carpeta: Path, pk: list[str], muestra: int, conteos:
         difs = []
         for i in pos:
             esp = jl[i]["v"]
-            reales = idx.get(tuple(str(esp.get(k)) for k in pk))
+            reales = idx.get(tuple(_k(esp.get(k)) for k in pk))
             if not reales:
                 continue
             got = reales[0]
             for attr, v in esp.items():
                 if not _igual(v, got.get(attr.lower())):
                     difs.append({"ord": jl[i]["_ord"], "attr": attr, "esperado": v, "sharepoint": got.get(attr.lower())})
+            # atributos omitidos en el jsonl (NULL o vacio en el origen) deben quedar vacios en el sitio
+            for attr, v in got.items():
+                if attr in esp or attr in ("_id",) or attr.endswith("_raw"):
+                    continue
+                if not _vacio(v):
+                    difs.append({"ord": jl[i]["_ord"], "attr": attr, "esperado": "(omitido)", "sharepoint": v})
         res["muestreadas"] = len(pos)
         if difs:
             res["problemas"].append(f"{len(difs)} diferencias de valor, ej. {difs[:3]}")
+    elif sin_llave:
+        # sin llave utilizable (4 filas): se compara el conjunto de filas completo
+        def firma(d):
+            return json.dumps({k: (_k(v)) for k, v in sorted(d.items()) if not _vacio(v)}, sort_keys=True)
+        esp = sorted(firma({k.lower(): v for k, v in r["v"].items()}) for r in jl)
+        got = sorted(firma({k: v for k, v in r.items() if k != "_id" and not k.endswith("_raw")}) for r in sp)
+        res["muestreadas"] = len(jl)
+        if esp != got:
+            res["problemas"].append(f"contenido distinto en lista sin llave: {esp[:2]} vs {got[:2]}")
     return res
 
 
