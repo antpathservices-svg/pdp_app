@@ -57,10 +57,28 @@ pwsh ./sharepoint/Deploy-Listas.ps1 -SiteUrl https://<tenant>.sharepoint.com/sit
 |---|---|---|
 | 2026-11-21 | `https://franquiciasab.sharepoint.com/sites/DEPRITAM` | v1.4: 40 listas, 234 columnas y 57 índices, verificados contra `productos.json`. Tardó unos 60 minutos (cada columna es una llamada). |
 | 2026-11-22 | `https://franquiciasab.sharepoint.com/sites/DEPRITAM` | v1.5: primero de prueba `raw_inv_conteo_semanal*` y `raw_inv_masa_mezcla`, luego completo. Resultado verificado: 42 listas, 277 columnas y 78 índices, sin duplicadas ni advertencias de tipo. Las `raw_inv_*` estaban vacías antes de cambiar las llaves. |
+| 2026-11-23 | `https://franquiciasab.sharepoint.com/sites/DEPRITAM` | v1.6: las 5 listas de D8 (columnas del POS y `renglon_carga`). Verificado: 42 listas, 297 columnas y 80 índices. |
+| 2026-11-24 | `https://franquiciasab.sharepoint.com/sites/DEPRITAM` | **Carga inicial (D7/D8)** del volcado del POS con corte al 2026-10-28: 25 listas, 105,685 filas, conciliadas fila por fila sin diferencias. Detalle y bitácora en `docs/carga-inicial.md`. |
 
 Nota: SharePoint guardó la columna `c` de `raw_app_receta_producto` con nombre interno `_x0063_` (el nombre visible sigue siendo `c`). Power Apps la ve como `c`; por Microsoft Graph se escribe como `_x0063_`.
 
 ## Cambios
+
+### v1.6 (Marketplace 1.4) · 2026-11-23 · carga inicial del volcado del POS (D8)
+
+Columnas y llaves de cinco listas `raw_inv_*` para recibir el volcado (`resultado contrato bronze.txt`, consulta `bronze_snapshot_full.sql`) sin pérdida. Cada columna nueva cita D8 y su fuente `dbo.<tabla>.<col>` en `nota`. No cambia tipo ni significado de columnas existentes. Sin desplegar: falta correr `Deploy-Listas.ps1` en el sitio.
+
+| Lista (tabla) | Columnas nuevas | Llave |
+|---|---|---|
+| `raw_inv_movimiento` (`movsinv`) | `movto`, `foliocheque`, `idcompra`, `traspaso`, `invfisico`, `idturno` (enteros), `renglon_carga` (entero, metadato de carga) | `renglon_carga` (antes `fecha, idconcepto, idinsumo`) |
+| `raw_inv_conteo_fisico` (`invfisico`) | `cancelado`, `idempresa`, `inventarioteorico2`, `inventariofisico2` | `folio` (sin cambio) |
+| `raw_inv_conteo_fisico_partida` (`invfisicomovtos`) | `idpresentacion`, `existenciaalmacen2`, `fisicoalmacen2` | `folio, idinsumo`, sin cambio (`idpresentacion` queda como columna: viene en blanco) |
+| `raw_inv_compra` (`compras`) | `fechafactura`, `descuento`, `idempresa` | `idcompra` (sin cambio) |
+| `raw_inv_compra_partida` (`comprasmovtos`) | `idordencompra`, `descuento`, `renglon_carga` (entero, metadato de carga) | `renglon_carga` (antes `idcompra, idinsumo`) |
+
+`renglon_carga` es metadato de carga, no dato del POS: ordinal 1-based de la fila en el volcado (orden del archivo), estable solo para esta carga única (D7/D8). Conserva los duplicados reales: `movsinv` tiene 103 pares de filas idénticas y `movto` nulo en 11,031 filas, y `comprasmovtos` repite 3 veces `idcompra, idinsumo, idalmacen`; ninguna combinación de columnas del origen es única. `renglon_carga` solo lo llena la carga inicial (D7/D8): las filas que crea la app (Recibir, transferencias, Registrar entrada) lo dejan vacío y se identifican por el ID de SharePoint; la llave aplica a las filas de la carga inicial. `raw_inv_traspaso_partida.renglon` es dato de la app y no cambia. Se conservan los índices de v1.5 (`raw_inv_movimiento`: `fecha`, `idconcepto`, `idinsumo`; `raw_inv_compra_partida`: `idcompra`, `idinsumo`).
+
+El volcado no trae `impuesto1` (`raw_inv_compra` y `raw_inv_compra_partida`) ni `importeconimpuestos` (`raw_inv_compra_partida`): quedan vacías en la carga inicial.
 
 ### v1.5 (Marketplace 1.3) · 2026-11-22 · cierre de brechas de Inventarios (D6)
 
@@ -86,3 +104,4 @@ B-11 queda abierta (pregunta al líder: en el piloto cada insumo tiene un solo `
 
 - `raw_pos_venta_cuenta` y `raw_pos_venta_partida` superan las 5,000 filas del umbral de vista: las galerías de Power Apps deben filtrar por columnas indexadas y de forma delegable.
 - Las llaves de `raw_inv_conteo_semanal_linea` y `raw_inv_traspaso_partida` ya identifican una fila (v1.5), pero las filas que ya existan en un sitio con la llave anterior deben revisarse. SharePoint no impone unicidad: la garantiza la app.
+- `raw_inv_movimiento` (14,834 filas) y `raw_inv_conteo_fisico_partida` (8,130) superarán el umbral de 5,000 con la carga inicial (D8): filtrar por columnas indexadas (`fecha`, `folio`) y de forma delegable.

@@ -1,0 +1,1665 @@
+Screens:
+  scrInventarios_ConteoCierre:
+    Properties:
+      Fill: =Tema.Fondo
+      OnVisible: |-
+        =Set(varDlgCie, {visible: false, tipo: "", titulo: "", idinsumo: "", ID: 0});
+        Set(varDlgCieError, "");
+        ClearCollect(colHist, Filter(raw_inv_conteo_semanal_historial, conteoId = varConteoId));
+        // colCierre: líneas con su disponible y si quedan pendientes (UX02 §03 colPendientes; B-09 supuesto)
+        ClearCollect(
+            colCierre,
+            ForAll(
+                colLineas As L,
+                With(
+                    {i: LookUp(Insumos, idinsumo = L.idinsumo), rf: LookUp(colRef, idinsumo = L.idinsumo)},
+                    With(
+                        {disp: If(IsBlank(rf.pasada), Blank(), rf.pasada + rf.mov)},
+                        {
+                            ID: L.ID, idinsumo: L.idinsumo, Insumo: i.descripcion, Ab: i.Ab, Costo: i.costopromedio,
+                            cantidad: L.cantidad, sinExistencia: L.sinExistencia, alerta: L.alerta, resuelta: L.resuelta,
+                            resueltaPor: L.resueltaPor, pasada: rf.pasada, mov: rf.mov, disp: disp,
+                            excede: !L.sinExistencia && !IsBlank(disp) && L.cantidad > disp,
+                            pendiente: (!IsBlank(L.alerta) && !L.resuelta) || (!L.sinExistencia && !IsBlank(disp) && L.cantidad > disp)
+                        }
+                    )
+                )
+            )
+        )
+    Children:
+      - conCntCie_Raiz:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            DropShadow: =DropShadow.None
+            Fill: =Tema.Fondo
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =Resp(12, 24, 32)
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingBottom: =Gutter
+            PaddingLeft: =MargenColumna(Parent.Width)
+            PaddingRight: =MargenColumna(Parent.Width)
+            PaddingTop: =Gutter
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =Parent.Width
+          Children:
+            - conCntCie_Header:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderColor: =Tema.Marca
+                  DropShadow: =DropShadow.None
+                  Fill: =Tema.Superficie
+                  FillPortions: =0
+                  Height: =Resp(56, 64, 64)
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =12
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
+                Children:
+                  - btnCntCie_Regresar:
+                      Control: Classic/Button
+                      Properties:
+                        BorderColor: =Tema.Borde
+                        Color: =Tema.Texto
+                        DisabledBorderColor: =Tema.Borde
+                        DisabledColor: =Tema.TextoSuave
+                        DisabledFill: =Tema.SuperficiePresion
+                        Fill: =Tema.Fondo
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        Height: =44
+                        HoverBorderColor: =Tema.Marca
+                        HoverColor: =Tema.Texto
+                        HoverFill: =Tema.SuperficieHover
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        OnSelect: =Navigate(scrInventarios_Conteo, ScreenTransition.None)
+                        PaddingLeft: =8
+                        PaddingRight: =8
+                        PressedBorderColor: =Tema.Marca
+                        PressedColor: =Tema.Texto
+                        PressedFill: =Tema.SuperficiePresion
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        Size: =TipoAppTitulo
+                        Text: ="‹"
+                        Tooltip: ="Regresar al conteo"
+                        Width: =44
+                  - lblCntCie_Marca:
+                      Control: Label
+                      Properties:
+                        Color: =Tema.TextoMarca
+                        FillPortions: =1
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Bold
+                        Height: =28
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =TipoAppTitulo
+                        Text: ="Conteo semanal"
+            - conCntCie_Titulo:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  Fill: =Color.Transparent
+                  FillPortions: =0
+                  Height: =(Resp(32, 38, 44)) + (24) + 1 * (4)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =4
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                Children:
+                  - lblCntCie_Titulo:
+                      Control: Label
+                      Properties:
+                        Color: =Tema.Texto
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Bold
+                        Height: =Resp(32, 38, 44)
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =TipoHero
+                        Text: ="Cierre del conteo"
+                  - lblCntCie_Subtitulo:
+                      Control: Label
+                      Properties:
+                        Color: =Tema.TextoSuave
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        Height: =24
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =TipoLead
+                        Text: =If(IsBlank(varConteo.enviadoEl), "Aún no se envía a revisión", "Enviado el " & Text(varConteo.enviadoEl, "d mmm, hh:mm", "es-MX"))
+            - galCntCie_Kpis:
+                Control: Gallery
+                Variant: Vertical
+                Properties:
+                  AccessibleLabel: ="Indicadores del cierre"
+                  Fill: =Color.Transparent
+                  FillPortions: =0
+                  FocusedBorderColor: =Tema.Marca
+                  FocusedBorderThickness: =2
+                  Height: |-
+                    =RoundUp(CountRows(Table(
+                        {Etiqueta: "Insumos contados", Valor: CountRows(colLineas) & " de " & CountRows(Insumos), Detalle: (CountRows(Insumos) - CountRows(colLineas)) & " quedaron vacíos", Color: Tema.Texto},
+                        {Etiqueta: "Valor del conteo", Valor: If(varRol = "col", "—", Text(Sum(colCierre, cantidad * Costo), "$#,##0")), Detalle: "Cantidad × costo promedio", Color: Tema.Texto},
+                        {Etiqueta: "Alertas por resolver", Valor: Text(CountRows(Filter(colCierre, pendiente))), Detalle: "Bloquean el cierre", Color: If(CountRows(Filter(colCierre, pendiente)) > 0, Tema.Error, Tema.Exito)}
+                    )) / Resp(2, 3, 3), 0) * (Resp(118, 136, 136) + 2 * MitadHueco)
+                  Items: |-
+                    =Table(
+                        {Etiqueta: "Insumos contados", Valor: CountRows(colLineas) & " de " & CountRows(Insumos), Detalle: (CountRows(Insumos) - CountRows(colLineas)) & " quedaron vacíos", Color: Tema.Texto},
+                        {Etiqueta: "Valor del conteo", Valor: If(varRol = "col", "—", Text(Sum(colCierre, cantidad * Costo), "$#,##0")), Detalle: "Cantidad × costo promedio", Color: Tema.Texto},
+                        {Etiqueta: "Alertas por resolver", Valor: Text(CountRows(Filter(colCierre, pendiente))), Detalle: "Bloquean el cierre", Color: If(CountRows(Filter(colCierre, pendiente)) > 0, Tema.Error, Tema.Exito)}
+                    )
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  ShowScrollbar: =false
+                  TabIndex: =0
+                  TemplatePadding: =0
+                  TemplateSize: =Resp(118, 136, 136) + 2 * MitadHueco
+                  WrapCount: =Resp(2, 3, 3)
+                Children:
+                  - congalCntCie_Kpis_Tile:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderColor: =Tema.Borde
+                        BorderThickness: =2
+                        DropShadow: =DropShadow.None
+                        Fill: =Tema.Superficie
+                        Height: =Parent.TemplateHeight - 2 * MitadHueco
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =6
+                        LayoutJustifyContent: =LayoutJustifyContent.Center
+                        PaddingBottom: =Resp(10, 14, 14)
+                        PaddingLeft: =Resp(10, 14, 14)
+                        PaddingRight: =Resp(10, 14, 14)
+                        PaddingTop: =Resp(10, 14, 14)
+                        RadiusBottomLeft: =16
+                        RadiusBottomRight: =16
+                        RadiusTopLeft: =16
+                        RadiusTopRight: =16
+                        Width: =Parent.TemplateWidth - 2 * MitadHueco
+                        X: =MitadHueco
+                        Y: =MitadHueco
+                      Children:
+                        - lblgalCntCie_Kpis_Etiqueta:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.TextoSuave
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =20
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoEtiqueta
+                              Text: =ThisItem.Etiqueta
+                        - lblgalCntCie_Kpis_Valor:
+                            Control: Label
+                            Properties:
+                              Color: =ThisItem.Color
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Bold
+                              Height: =Resp(28, 36, 36)
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =Resp(16.5, 21, 21)
+                              Text: =ThisItem.Valor
+                        - lblgalCntCie_Kpis_Detalle:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.TextoSuave
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              Height: =32
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoDetalle
+                              Text: =ThisItem.Detalle
+                              VerticalAlign: =VerticalAlign.Top
+            - conCntCie_Alertas:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderColor: =Tema.Borde
+                  BorderThickness: =2
+                  DropShadow: =DropShadow.None
+                  Fill: =Tema.Superficie
+                  FillPortions: =0
+                  Height: =(((26) + (22) + 1 * (2))) + ((galCntCie_Alertas.AllItemsCount * Resp(156, 100, 100))) + (If(galCntCie_Alertas.AllItemsCount = 0, 22, 0)) + 2 * (12) + (Resp(14, 18, 18)) + (Resp(14, 18, 18))
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =12
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =Resp(14, 18, 18)
+                  PaddingLeft: =Resp(14, 18, 18)
+                  PaddingRight: =Resp(14, 18, 18)
+                  PaddingTop: =Resp(14, 18, 18)
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
+                Children:
+                  - conCntCieAl_CabTexto:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Fill: =Color.Transparent
+                        Height: =(26) + (22) + 1 * (2)
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =2
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                      Children:
+                        - lblCntCieAl_Tit:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.Texto
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =26
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoCardTit
+                              Text: ="Alertas"
+                        - lblCntCieAl_Sub:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.TextoSuave
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              Height: =22
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoCuerpo
+                              Text: =galCntCie_Alertas.AllItemsCount & " líneas · " & CountRows(Filter(colCierre, pendiente)) & " pendientes"
+                  - galCntCie_Alertas:
+                      Control: Gallery
+                      Variant: Vertical
+                      Properties:
+                        AccessibleLabel: ="Alertas del conteo"
+                        Fill: =Color.Transparent
+                        FillPortions: =0
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Height: =galCntCie_Alertas.AllItemsCount * Resp(156, 100, 100)
+                        Items: =SortByColumns(Filter(colCierre, !IsBlank(alerta) || excede), "pendiente", SortOrder.Descending, "Insumo", SortOrder.Ascending)
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        ShowScrollbar: =false
+                        TabIndex: =0
+                        TemplatePadding: =0
+                        TemplateSize: =Resp(156, 100, 100)
+                      Children:
+                        - conCntCieAl_Fila:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderColor: =Tema.Borde
+                              BorderThickness: =2
+                              DropShadow: =DropShadow.None
+                              Fill: =Tema.Superficie
+                              Height: =Parent.TemplateHeight - 8
+                              LayoutAlignItems: =If(EsTelefono, LayoutAlignItems.Stretch, LayoutAlignItems.Center)
+                              LayoutDirection: =If(EsTelefono, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                              LayoutGap: =12
+                              PaddingBottom: =8
+                              PaddingLeft: =12
+                              PaddingRight: =12
+                              PaddingTop: =8
+                              RadiusBottomLeft: =12
+                              RadiusBottomRight: =12
+                              RadiusTopLeft: =12
+                              RadiusTopRight: =12
+                              Width: =Parent.TemplateWidth
+                              Y: =4
+                            Children:
+                              - conCntCieAl_Info:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    DropShadow: =DropShadow.None
+                                    Fill: =Color.Transparent
+                                    Height: =((28)) + (22) + (18) + 2 * (2)
+                                    LayoutAlignItems: =LayoutAlignItems.Stretch
+                                    LayoutDirection: =LayoutDirection.Vertical
+                                    LayoutGap: =2
+                                    LayoutMinHeight: =0
+                                    LayoutMinWidth: =0
+                                    RadiusBottomLeft: =0
+                                    RadiusBottomRight: =0
+                                    RadiusTopLeft: =0
+                                    RadiusTopRight: =0
+                                  Children:
+                                    - conCntCieAl_TitFila:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          DropShadow: =DropShadow.None
+                                          Fill: =Color.Transparent
+                                          FillPortions: =0
+                                          Height: =28
+                                          LayoutAlignItems: =LayoutAlignItems.Center
+                                          LayoutDirection: =LayoutDirection.Horizontal
+                                          LayoutGap: =8
+                                          LayoutMinHeight: =0
+                                          LayoutMinWidth: =0
+                                          RadiusBottomLeft: =0
+                                          RadiusBottomRight: =0
+                                          RadiusTopLeft: =0
+                                          RadiusTopRight: =0
+                                        Children:
+                                          - lblCntCieAl_Insumo:
+                                              Control: Label
+                                              Properties:
+                                                Color: =Tema.Texto
+                                                FillPortions: =1
+                                                FocusedBorderColor: =Tema.Marca
+                                                FocusedBorderThickness: =2
+                                                Font: =Font.'Segoe UI'
+                                                FontWeight: =FontWeight.Semibold
+                                                Height: =26
+                                                LayoutMinHeight: =0
+                                                LayoutMinWidth: =0
+                                                PaddingBottom: =0
+                                                PaddingLeft: =0
+                                                PaddingRight: =0
+                                                PaddingTop: =0
+                                                Size: =TipoCardTit
+                                                Text: =ThisItem.Insumo
+                                                Wrap: =false
+                                          - conCntCieAl_Estado:
+                                              Control: GroupContainer
+                                              Variant: AutoLayout
+                                              Properties:
+                                                DropShadow: =DropShadow.None
+                                                Fill: =ColorFade(ColorEstado(If(ThisItem.excede, "Excede lo disponible", ThisItem.resuelta || IsBlank(ThisItem.alerta), "Resuelta", EtiquetaAlerta(ThisItem.alerta))), 0.88)
+                                                FillPortions: =0
+                                                Height: =24
+                                                LayoutAlignItems: =LayoutAlignItems.Center
+                                                LayoutDirection: =LayoutDirection.Horizontal
+                                                LayoutGap: =6
+                                                LayoutMinHeight: =0
+                                                LayoutMinWidth: =0
+                                                PaddingLeft: =10
+                                                PaddingRight: =10
+                                                RadiusBottomLeft: =12
+                                                RadiusBottomRight: =12
+                                                RadiusTopLeft: =12
+                                                RadiusTopRight: =12
+                                                Width: =Len(If(ThisItem.excede, "Excede lo disponible", ThisItem.resuelta || IsBlank(ThisItem.alerta), "Resuelta", EtiquetaAlerta(ThisItem.alerta))) * 6.6 + 4 + 34
+                                              Children:
+                                                - cirCntCieAl_Estado:
+                                                    Control: Circle
+                                                    Properties:
+                                                      AccessibleLabel: |-
+                                                        ="Estado: " & If(ThisItem.excede, "Excede lo disponible", ThisItem.resuelta || IsBlank(ThisItem.alerta), "Resuelta", EtiquetaAlerta(ThisItem.alerta))
+                                                      Fill: =ColorEstado(If(ThisItem.excede, "Excede lo disponible", ThisItem.resuelta || IsBlank(ThisItem.alerta), "Resuelta", EtiquetaAlerta(ThisItem.alerta)))
+                                                      Height: =8
+                                                      LayoutMinHeight: =0
+                                                      LayoutMinWidth: =0
+                                                      Width: =8
+                                                - lblCntCieAl_Estado:
+                                                    Control: Label
+                                                    Properties:
+                                                      Color: =Tema.Texto
+                                                      FocusedBorderColor: =Tema.Marca
+                                                      FocusedBorderThickness: =2
+                                                      Font: =Font.'Segoe UI'
+                                                      FontWeight: =FontWeight.Semibold
+                                                      Height: =16
+                                                      LayoutMinHeight: =0
+                                                      LayoutMinWidth: =0
+                                                      PaddingBottom: =0
+                                                      PaddingLeft: =0
+                                                      PaddingRight: =0
+                                                      PaddingTop: =0
+                                                      Size: =TipoDetalle
+                                                      Text: =If(ThisItem.excede, "Excede lo disponible", ThisItem.resuelta || IsBlank(ThisItem.alerta), "Resuelta", EtiquetaAlerta(ThisItem.alerta))
+                                                      Width: =Len(If(ThisItem.excede, "Excede lo disponible", ThisItem.resuelta || IsBlank(ThisItem.alerta), "Resuelta", EtiquetaAlerta(ThisItem.alerta))) * 6.6 + 4
+                                                      Wrap: =false
+                                    - lblCntCieAl_Det:
+                                        Control: Label
+                                        Properties:
+                                          Color: =Tema.TextoSuave
+                                          FocusedBorderColor: =Tema.Marca
+                                          FocusedBorderThickness: =2
+                                          Font: =Font.'Segoe UI'
+                                          Height: =22
+                                          LayoutMinHeight: =0
+                                          LayoutMinWidth: =0
+                                          PaddingBottom: =0
+                                          PaddingLeft: =0
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          Size: =TipoCuerpo
+                                          Text: |-
+                                            =If(ThisItem.sinExistencia, "Sin existencia", "Contado " & ThisItem.cantidad & " " & ThisItem.Ab) &
+                                            " · semana pasada " & If(IsBlank(ThisItem.pasada), "sin dato", ThisItem.pasada & " " & ThisItem.Ab)
+                                          Wrap: =false
+                                    - lblCntCieAl_Disp:
+                                        Control: Label
+                                        Properties:
+                                          Color: =Tema.TextoSuave
+                                          FocusedBorderColor: =Tema.Marca
+                                          FocusedBorderThickness: =2
+                                          Font: =Font.'Segoe UI'
+                                          Height: =18
+                                          LayoutMinHeight: =0
+                                          LayoutMinWidth: =0
+                                          PaddingBottom: =0
+                                          PaddingLeft: =0
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          Size: =TipoDetalle
+                                          Text: |-
+                                            =If(
+                                                IsBlank(ThisItem.disp), "Disponible sin calcular: falta el conteo de la semana pasada",
+                                                "Disponible " & ThisItem.disp & " " & ThisItem.Ab & " = inicial " & ThisItem.pasada & " + movimientos de la semana " & ThisItem.mov
+                                            ) & If(ThisItem.resuelta && !IsBlank(ThisItem.resueltaPor), " · Aceptada por " & ThisItem.resueltaPor, "")
+                                          Wrap: =false
+                              - conCntCieAl_Acc:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    DropShadow: =DropShadow.None
+                                    Fill: =Color.Transparent
+                                    FillPortions: =0
+                                    Height: =44
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =8
+                                    LayoutMinHeight: =0
+                                    LayoutMinWidth: =0
+                                    RadiusBottomLeft: =0
+                                    RadiusBottomRight: =0
+                                    RadiusTopLeft: =0
+                                    RadiusTopRight: =0
+                                    Width: =Resp(Parent.Width - 24, 300, 300)
+                                  Children:
+                                    - btnCntCie_Corregir:
+                                        Control: Classic/Button
+                                        Properties:
+                                          BorderColor: =Tema.Borde
+                                          Color: =Tema.Texto
+                                          DisabledBorderColor: =Tema.Borde
+                                          DisabledColor: =Tema.TextoSuave
+                                          DisabledFill: =Tema.SuperficiePresion
+                                          DisplayMode: =If(varRol in "ger,sup" && varConteo.estado = "Por revisar", DisplayMode.Edit, DisplayMode.Disabled)
+                                          Fill: =Tema.Superficie
+                                          FillPortions: =1
+                                          FocusedBorderColor: =Tema.Marca
+                                          FocusedBorderThickness: =2
+                                          Font: =Font.'Segoe UI'
+                                          Height: =44
+                                          HoverBorderColor: =Tema.Marca
+                                          HoverColor: =Tema.Texto
+                                          HoverFill: =Tema.SuperficieHover
+                                          LayoutMinHeight: =0
+                                          LayoutMinWidth: =0
+                                          OnSelect: |-
+                                            =Set(varDlgCie, {visible: true, tipo: "corregir", titulo: "Corregir cantidad", idinsumo: ThisItem.idinsumo, ID: ThisItem.ID});
+                                            Set(varDlgCieError, "")
+                                          PaddingLeft: =8
+                                          PaddingRight: =8
+                                          PressedBorderColor: =Tema.Marca
+                                          PressedColor: =Tema.Texto
+                                          PressedFill: =Tema.SuperficiePresion
+                                          RadiusBottomLeft: =8
+                                          RadiusBottomRight: =8
+                                          RadiusTopLeft: =8
+                                          RadiusTopRight: =8
+                                          Size: =TipoEtiqueta
+                                          Text: ="Corregir"
+                                    - btnCntCie_Aceptar:
+                                        Control: Classic/Button
+                                        Properties:
+                                          BorderColor: =Tema.Marca
+                                          Color: =Tema.Texto
+                                          DisabledBorderColor: =Tema.Borde
+                                          DisabledColor: =Tema.TextoSuave
+                                          DisabledFill: =Tema.SuperficiePresion
+                                          DisplayMode: =If(varRol in "ger,sup" && varConteo.estado = "Por revisar", DisplayMode.Edit, DisplayMode.Disabled)
+                                          Fill: =Tema.Marca
+                                          FillPortions: =1
+                                          FocusedBorderColor: =Tema.Texto
+                                          FocusedBorderThickness: =2
+                                          Font: =Font.'Segoe UI'
+                                          Height: =44
+                                          HoverBorderColor: =Tema.MarcaHover
+                                          HoverColor: =Tema.Texto
+                                          HoverFill: =Tema.MarcaHover
+                                          LayoutMinHeight: =0
+                                          LayoutMinWidth: =0
+                                          OnSelect: |-
+                                            =With(
+                                                {lid: ThisItem.ID},
+                                                Patch(raw_inv_conteo_semanal_linea, LookUp(raw_inv_conteo_semanal_linea, ID = lid), {resuelta: true, resueltaPor: NombreRol(varRol), resolucion: "Aceptada"});
+                                                Patch(colLineas, LookUp(colLineas, ID = lid), {resuelta: true, resueltaPor: NombreRol(varRol), resolucion: "Aceptada"})
+                                            );
+                                            Select(btnCie_Recalcular)
+                                          PaddingLeft: =8
+                                          PaddingRight: =8
+                                          PressedBorderColor: =Tema.Marca
+                                          PressedColor: =Tema.Texto
+                                          PressedFill: =Tema.MarcaHover
+                                          RadiusBottomLeft: =8
+                                          RadiusBottomRight: =8
+                                          RadiusTopLeft: =8
+                                          RadiusTopRight: =8
+                                          Size: =TipoEtiqueta
+                                          Text: ="Aceptar"
+                                          Visible: =!ThisItem.excede && !ThisItem.resuelta && !IsBlank(ThisItem.alerta)
+                                    - btnCntCie_Entrada:
+                                        Control: Classic/Button
+                                        Properties:
+                                          BorderColor: =Tema.Marca
+                                          Color: =Tema.Texto
+                                          DisabledBorderColor: =Tema.Borde
+                                          DisabledColor: =Tema.TextoSuave
+                                          DisabledFill: =Tema.SuperficiePresion
+                                          DisplayMode: =If(varRol in "ger,sup" && varConteo.estado = "Por revisar", DisplayMode.Edit, DisplayMode.Disabled)
+                                          Fill: =Tema.Marca
+                                          FillPortions: =1
+                                          FocusedBorderColor: =Tema.Texto
+                                          FocusedBorderThickness: =2
+                                          Font: =Font.'Segoe UI'
+                                          Height: =44
+                                          HoverBorderColor: =Tema.MarcaHover
+                                          HoverColor: =Tema.Texto
+                                          HoverFill: =Tema.MarcaHover
+                                          LayoutMinHeight: =0
+                                          LayoutMinWidth: =0
+                                          OnSelect: |-
+                                            =Set(varDlgCie, {visible: true, tipo: "entrada", titulo: "Registrar entrada faltante", idinsumo: ThisItem.idinsumo, ID: ThisItem.ID});
+                                            Set(varDlgCieError, "")
+                                          PaddingLeft: =8
+                                          PaddingRight: =8
+                                          PressedBorderColor: =Tema.Marca
+                                          PressedColor: =Tema.Texto
+                                          PressedFill: =Tema.MarcaHover
+                                          RadiusBottomLeft: =8
+                                          RadiusBottomRight: =8
+                                          RadiusTopLeft: =8
+                                          RadiusTopRight: =8
+                                          Size: =TipoEtiqueta
+                                          Text: ="Registrar entrada"
+                                          Visible: =ThisItem.excede
+                  - lblCntCie_SinAlertas:
+                      Control: Label
+                      Properties:
+                        Color: =Tema.TextoSuave
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        Height: =22
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =TipoCuerpo
+                        Text: ="Sin alertas."
+                        Visible: =galCntCie_Alertas.AllItemsCount = 0
+            - conCntCie_Comentario:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderColor: =Tema.Borde
+                  BorderThickness: =2
+                  DropShadow: =DropShadow.None
+                  Fill: =Tema.Superficie
+                  FillPortions: =0
+                  Height: =(((26) + (22) + 1 * (2))) + (Resp(66, 44, 44)) + 1 * (12) + (Resp(14, 18, 18)) + (Resp(14, 18, 18))
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =12
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =Resp(14, 18, 18)
+                  PaddingLeft: =Resp(14, 18, 18)
+                  PaddingRight: =Resp(14, 18, 18)
+                  PaddingTop: =Resp(14, 18, 18)
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
+                Children:
+                  - conCntCieCom_CabTexto:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Fill: =Color.Transparent
+                        Height: =(26) + (22) + 1 * (2)
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =2
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                      Children:
+                        - lblCntCieCom_Tit:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.Texto
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =26
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoCardTit
+                              Text: ="Comentario del conteo"
+                        - lblCntCieCom_Sub:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.TextoSuave
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              Height: =22
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoCuerpo
+                              Text: ="Lo escribe quien envía el conteo"
+                  - lblCntCie_Comentario:
+                      Control: Label
+                      Properties:
+                        Color: =Tema.Texto
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        Height: =Resp(66, 44, 44)
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =TipoCuerpo
+                        Text: =If(IsBlank(varConteo.comentario), "Sin comentario.", varConteo.comentario)
+                        VerticalAlign: =VerticalAlign.Top
+            - conCntCie_Estado:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderColor: =Tema.Borde
+                  BorderThickness: =2
+                  DropShadow: =DropShadow.None
+                  Fill: =Tema.Superficie
+                  FillPortions: =0
+                  Height: =((28)) + (Resp(44, 22, 22)) + ((44)) + 2 * (12) + (Resp(14, 18, 18)) + (Resp(14, 18, 18))
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =12
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =Resp(14, 18, 18)
+                  PaddingLeft: =Resp(14, 18, 18)
+                  PaddingRight: =Resp(14, 18, 18)
+                  PaddingTop: =Resp(14, 18, 18)
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
+                Children:
+                  - conCntCieEst_Cab:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Fill: =Color.Transparent
+                        FillPortions: =0
+                        Height: =28
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =12
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                      Children:
+                        - lblCntCieEst_Tit:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.Texto
+                              FillPortions: =1
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =26
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoCardTit
+                              Text: ="Estado del conteo"
+                        - conCntCie_EstadoConteo:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              Fill: =ColorFade(ColorEstado(varConteo.estado), 0.88)
+                              FillPortions: =0
+                              Height: =24
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutGap: =6
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingLeft: =10
+                              PaddingRight: =10
+                              RadiusBottomLeft: =12
+                              RadiusBottomRight: =12
+                              RadiusTopLeft: =12
+                              RadiusTopRight: =12
+                              Width: =Len(varConteo.estado) * 6.6 + 4 + 34
+                            Children:
+                              - cirCntCie_EstadoConteo:
+                                  Control: Circle
+                                  Properties:
+                                    AccessibleLabel: |-
+                                      ="Estado: " & varConteo.estado
+                                    Fill: =ColorEstado(varConteo.estado)
+                                    Height: =8
+                                    LayoutMinHeight: =0
+                                    LayoutMinWidth: =0
+                                    Width: =8
+                              - lblCntCie_EstadoConteo:
+                                  Control: Label
+                                  Properties:
+                                    Color: =Tema.Texto
+                                    FocusedBorderColor: =Tema.Marca
+                                    FocusedBorderThickness: =2
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =16
+                                    LayoutMinHeight: =0
+                                    LayoutMinWidth: =0
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =TipoDetalle
+                                    Text: =varConteo.estado
+                                    Width: =Len(varConteo.estado) * 6.6 + 4
+                                    Wrap: =false
+                  - lblCntCie_Ayuda:
+                      Control: Label
+                      Properties:
+                        Color: =Tema.TextoSuave
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        Height: =Resp(44, 22, 22)
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =TipoCuerpo
+                        Text: |-
+                          =If(
+                              varConteo.estado in ["Cerrado", "Corregido"], "Cerrado por " & varConteo.cerradoPor & " el " & FechaCorta(varConteo.cerradoEl) & ". Cada corrección crea una versión nueva.",
+                              CountRows(Filter(colCierre, pendiente)) = 0, "Todo resuelto. Los insumos vacíos quedan como no contados.",
+                              "Resuelve " & CountRows(Filter(colCierre, pendiente)) & " alertas para cerrar."
+                          )
+                        VerticalAlign: =VerticalAlign.Top
+                  - conCntCie_Botones:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Fill: =Color.Transparent
+                        FillPortions: =0
+                        Height: =44
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =12
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                      Children:
+                        - btnCntCie_Cerrar:
+                            Control: Classic/Button
+                            Properties:
+                              BorderColor: =Tema.Marca
+                              Color: =Tema.Texto
+                              DisabledBorderColor: =Tema.Borde
+                              DisabledColor: =Tema.TextoSuave
+                              DisabledFill: =Tema.SuperficiePresion
+                              DisplayMode: =If(varRol in "ger,sup" && varConteo.estado = "Por revisar" && CountRows(Filter(colCierre, pendiente)) = 0, DisplayMode.Edit, DisplayMode.Disabled)
+                              Fill: =Tema.Marca
+                              FillPortions: =1
+                              FocusedBorderColor: =Tema.Texto
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              Height: =44
+                              HoverBorderColor: =Tema.MarcaHover
+                              HoverColor: =Tema.Texto
+                              HoverFill: =Tema.MarcaHover
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              OnSelect: |-
+                                =Set(
+                                    varConteo,
+                                    Patch(
+                                        raw_inv_conteo_semanal,
+                                        LookUp(raw_inv_conteo_semanal, id_raw = varConteoId),
+                                        {estado: "Cerrado", cerradoPor: User().FullName, cerradoEl: Now(), rolCierre: varRol}
+                                    )
+                                );
+                                Notify("Conteo cerrado", NotificationType.Success)
+                              PaddingLeft: =8
+                              PaddingRight: =8
+                              PressedBorderColor: =Tema.Marca
+                              PressedColor: =Tema.Texto
+                              PressedFill: =Tema.MarcaHover
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                              Size: =TipoEtiqueta
+                              Text: |-
+                                ="🔒 Cerrar conteo"
+                        - btnCntCie_CorregirConteo:
+                            Control: Classic/Button
+                            Properties:
+                              BorderColor: =Tema.Borde
+                              Color: =Tema.Texto
+                              DisabledBorderColor: =Tema.Borde
+                              DisabledColor: =Tema.TextoSuave
+                              DisabledFill: =Tema.SuperficiePresion
+                              DisplayMode: =If(varRol in "ger,sup" && varConteo.estado in ["Cerrado", "Corregido"], DisplayMode.Edit, DisplayMode.Disabled)
+                              Fill: =Tema.Superficie
+                              FillPortions: =1
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              Height: =44
+                              HoverBorderColor: =Tema.Marca
+                              HoverColor: =Tema.Texto
+                              HoverFill: =Tema.SuperficieHover
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              OnSelect: |-
+                                =Set(varDlgCie, {visible: true, tipo: "correccion", titulo: "Corregir conteo cerrado", idinsumo: "", ID: 0});
+                                Set(varDlgCieError, "")
+                              PaddingLeft: =8
+                              PaddingRight: =8
+                              PressedBorderColor: =Tema.Marca
+                              PressedColor: =Tema.Texto
+                              PressedFill: =Tema.SuperficiePresion
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                              Size: =TipoEtiqueta
+                              Text: ="Corregir conteo"
+            - conCntCie_Historial:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderColor: =Tema.Borde
+                  BorderThickness: =2
+                  DropShadow: =DropShadow.None
+                  Fill: =Tema.Superficie
+                  FillPortions: =0
+                  Height: =(((26) + (22) + 1 * (2))) + ((galCntCie_Historial.AllItemsCount * 44)) + 1 * (12) + (Resp(14, 18, 18)) + (Resp(14, 18, 18))
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =12
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =Resp(14, 18, 18)
+                  PaddingLeft: =Resp(14, 18, 18)
+                  PaddingRight: =Resp(14, 18, 18)
+                  PaddingTop: =Resp(14, 18, 18)
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
+                  Visible: =CountRows(colHist) > 0
+                Children:
+                  - conCntCieHist_CabTexto:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Fill: =Color.Transparent
+                        Height: =(26) + (22) + 1 * (2)
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =2
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                      Children:
+                        - lblCntCieHist_Tit:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.Texto
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =26
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoCardTit
+                              Text: ="Historial de correcciones"
+                        - lblCntCieHist_Sub:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.TextoSuave
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              Height: =22
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoCuerpo
+                              Text: ="Cada corrección crea una versión nueva"
+                  - galCntCie_Historial:
+                      Control: Gallery
+                      Variant: Vertical
+                      Properties:
+                        AccessibleLabel: ="Historial de correcciones"
+                        Fill: =Color.Transparent
+                        FillPortions: =0
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Height: =galCntCie_Historial.AllItemsCount * 44
+                        Items: =Sort(colHist, version_raw, SortOrder.Descending)
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        ShowScrollbar: =false
+                        TabIndex: =0
+                        TemplatePadding: =0
+                        TemplateSize: =44
+                      Children:
+                        - conCntCieHist_Fila:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderColor: =Tema.Grid
+                              DropShadow: =DropShadow.None
+                              Fill: =Color.Transparent
+                              Height: =Parent.TemplateHeight
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutGap: =8
+                              PaddingLeft: =8
+                              PaddingRight: =8
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Width: =Parent.TemplateWidth
+                            Children:
+                              - lblCntCieHist_Version:
+                                  Control: Label
+                                  Properties:
+                                    Color: =Tema.Texto
+                                    FillPortions: =1
+                                    FocusedBorderColor: =Tema.Marca
+                                    FocusedBorderThickness: =2
+                                    Font: =Font.'Segoe UI'
+                                    Height: =22
+                                    LayoutMinHeight: =0
+                                    LayoutMinWidth: =0
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =TipoCuerpo
+                                    Text: ="v" & ThisItem.version_raw
+                                    Wrap: =false
+                              - lblCntCieHist_Insumo:
+                                  Control: Label
+                                  Properties:
+                                    Color: =Tema.Texto
+                                    FillPortions: =3
+                                    FocusedBorderColor: =Tema.Marca
+                                    FocusedBorderThickness: =2
+                                    Font: =Font.'Segoe UI'
+                                    Height: =22
+                                    LayoutMinHeight: =0
+                                    LayoutMinWidth: =0
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =TipoCuerpo
+                                    Text: =Coalesce(LookUp(Insumos, idinsumo = ThisItem.idinsumo).descripcion, ThisItem.idinsumo)
+                                    Wrap: =false
+                              - lblCntCieHist_Cambio:
+                                  Control: Label
+                                  Properties:
+                                    Color: =Tema.Texto
+                                    FillPortions: =2
+                                    FocusedBorderColor: =Tema.Marca
+                                    FocusedBorderThickness: =2
+                                    Font: =Font.'Segoe UI'
+                                    Height: =22
+                                    LayoutMinHeight: =0
+                                    LayoutMinWidth: =0
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =TipoCuerpo
+                                    Text: =ThisItem.antes & " → " & ThisItem.despues
+                                    Wrap: =false
+                              - lblCntCieHist_Motivo:
+                                  Control: Label
+                                  Properties:
+                                    Color: =Tema.TextoSuave
+                                    FillPortions: =3
+                                    FocusedBorderColor: =Tema.Marca
+                                    FocusedBorderThickness: =2
+                                    Font: =Font.'Segoe UI'
+                                    Height: =22
+                                    LayoutMinHeight: =0
+                                    LayoutMinWidth: =0
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =TipoCuerpo
+                                    Text: =ThisItem.motivo
+                                    Visible: =!EsTelefono
+                                    Wrap: =false
+                              - lblCntCieHist_Por:
+                                  Control: Label
+                                  Properties:
+                                    Color: =Tema.TextoSuave
+                                    FillPortions: =2
+                                    FocusedBorderColor: =Tema.Marca
+                                    FocusedBorderThickness: =2
+                                    Font: =Font.'Segoe UI'
+                                    Height: =22
+                                    LayoutMinHeight: =0
+                                    LayoutMinWidth: =0
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =TipoCuerpo
+                                    Text: =ThisItem.por & " · " & FechaCorta(ThisItem.el)
+                                    Visible: =EsEscritorio
+                                    Wrap: =false
+      - conCie_Dialogo:
+          Control: GroupContainer
+          Variant: ManualLayout
+          Properties:
+            DropShadow: =DropShadow.None
+            Fill: =Tema.Velo
+            Height: =Parent.Height
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Visible: =varDlgCie.visible
+            Width: =Parent.Width
+          Children:
+            - conCie_Panel:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderColor: =Tema.Borde
+                  BorderThickness: =2
+                  DropShadow: =DropShadow.None
+                  Fill: =Tema.Superficie
+                  Height: =(28) + (If(varDlgCie.tipo <> "correccion", 22, 0)) + (If(varDlgCie.tipo = "correccion", 44, 0)) + (If(varDlgCie.tipo = "entrada", 44, 0)) + (20) + (44) + (If(varDlgCie.tipo <> "corregir", 20, 0)) + (If(varDlgCie.tipo <> "corregir", 44, 0)) + (If(!IsBlank(varDlgCieError), 22, 0)) + ((44)) + 9 * (12) + (Resp(14, 22, 22)) + (Resp(14, 22, 22))
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =12
+                  PaddingBottom: =Resp(14, 22, 22)
+                  PaddingLeft: =Resp(14, 22, 22)
+                  PaddingRight: =Resp(14, 22, 22)
+                  PaddingTop: =Resp(14, 22, 22)
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
+                  Width: =Min(Parent.Width - 2 * Gutter, 512)
+                  X: =(Parent.Width - Self.Width) / 2
+                  Y: =Max(Gutter, Parent.Height * 0.1)
+                Children:
+                  - lblCie_DlgTitulo:
+                      Control: Label
+                      Properties:
+                        Color: =Tema.TextoMarca
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Bold
+                        Height: =28
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =Resp(15, 15, 15)
+                        Text: =varDlgCie.titulo
+                  - lblCieDlg_Insumo:
+                      Control: Label
+                      Properties:
+                        Color: =Tema.Texto
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Semibold
+                        Height: =22
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =TipoCuerpo
+                        Text: =Coalesce(LookUp(Insumos, idinsumo = varDlgCie.idinsumo).descripcion, "")
+                        Visible: =varDlgCie.tipo <> "correccion"
+                  - drpCieDlg_Insumo:
+                      Control: Classic/DropDown
+                      Properties:
+                        AccessibleLabel: ="Insumo a corregir"
+                        AllowEmptySelection: =true
+                        BorderColor: =Tema.Borde
+                        ChevronBackground: =Tema.Superficie
+                        ChevronDisabledBackground: =Tema.SuperficiePresion
+                        ChevronDisabledFill: =Tema.TextoSuave
+                        ChevronFill: =Tema.TextoMarca
+                        ChevronHoverBackground: =Tema.SuperficieHover
+                        ChevronHoverFill: =Tema.TextoMarca
+                        Color: =Tema.Texto
+                        DisabledBorderColor: =Tema.Borde
+                        DisabledColor: =Tema.TextoSuave
+                        DisabledFill: =Tema.SuperficiePresion
+                        Fill: =Tema.Superficie
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        Height: =44
+                        HoverBorderColor: =Tema.Marca
+                        HoverColor: =Tema.Texto
+                        HoverFill: =Tema.SuperficieHover
+                        Items: =Insumos
+                        Items.Value: =descripcion
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PressedColor: =Tema.Texto
+                        PressedFill: =Tema.SuperficiePresion
+                        SelectionColor: =Tema.Texto
+                        SelectionFill: =Tema.Marca
+                        Size: =TipoCuerpo
+                        Visible: =varDlgCie.tipo = "correccion"
+                  - drpCieDlg_Tipo:
+                      Control: Classic/DropDown
+                      Properties:
+                        AccessibleLabel: ="Tipo de entrada"
+                        BorderColor: =Tema.Borde
+                        ChevronBackground: =Tema.Superficie
+                        ChevronDisabledBackground: =Tema.SuperficiePresion
+                        ChevronDisabledFill: =Tema.TextoSuave
+                        ChevronFill: =Tema.TextoMarca
+                        ChevronHoverBackground: =Tema.SuperficieHover
+                        ChevronHoverFill: =Tema.TextoMarca
+                        Color: =Tema.Texto
+                        DisabledBorderColor: =Tema.Borde
+                        DisabledColor: =Tema.TextoSuave
+                        DisabledFill: =Tema.SuperficiePresion
+                        Fill: =Tema.Superficie
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        Height: =44
+                        HoverBorderColor: =Tema.Marca
+                        HoverColor: =Tema.Texto
+                        HoverFill: =Tema.SuperficieHover
+                        Items: =["Transferencia de entrada", "Compra sin orden previa"]
+                        Items.Value: =Value
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PressedColor: =Tema.Texto
+                        PressedFill: =Tema.SuperficiePresion
+                        SelectionColor: =Tema.Texto
+                        SelectionFill: =Tema.Marca
+                        Size: =TipoCuerpo
+                        Visible: =varDlgCie.tipo = "entrada"
+                  - lblCieDlg_CantEtiqueta:
+                      Control: Label
+                      Properties:
+                        Color: =Tema.Texto
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Semibold
+                        Height: =20
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =TipoEtiqueta
+                        Text: ="Cantidad"
+                  - txtCieDlg_Cantidad:
+                      Control: Classic/TextInput
+                      Properties:
+                        AccessibleLabel: ="Cantidad"
+                        Align: =Align.Right
+                        BorderColor: =Tema.Borde
+                        Color: =Tema.Texto
+                        Default: =""
+                        DisabledBorderColor: =Tema.Borde
+                        DisabledColor: =Tema.TextoSuave
+                        DisabledFill: =Tema.SuperficiePresion
+                        Fill: =Tema.Superficie
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        Format: =TextFormat.Number
+                        Height: =44
+                        HoverBorderColor: =Tema.Marca
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        Size: =TipoCuerpo
+                        VirtualKeyboardMode: =VirtualKeyboardMode.Numeric
+                  - lblCieDlg_TextoEtiqueta:
+                      Control: Label
+                      Properties:
+                        Color: =Tema.Texto
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Semibold
+                        Height: =20
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =TipoEtiqueta
+                        Text: =If(varDlgCie.tipo = "entrada", "Referencia (folio de la transferencia o de la factura)", "Motivo de la corrección")
+                        Visible: =varDlgCie.tipo <> "corregir"
+                  - txtCieDlg_Texto:
+                      Control: Classic/TextInput
+                      Properties:
+                        AccessibleLabel: ="Referencia o motivo"
+                        BorderColor: =Tema.Borde
+                        Color: =Tema.Texto
+                        Default: =""
+                        DisabledBorderColor: =Tema.Borde
+                        DisabledColor: =Tema.TextoSuave
+                        DisabledFill: =Tema.SuperficiePresion
+                        Fill: =Tema.Superficie
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        Height: =44
+                        HoverBorderColor: =Tema.Marca
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        Size: =TipoCuerpo
+                        Visible: =varDlgCie.tipo <> "corregir"
+                  - lblCieDlg_Error:
+                      Control: Label
+                      Properties:
+                        Color: =Tema.Error
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Semibold
+                        Height: =22
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =TipoCuerpo
+                        Text: =varDlgCieError
+                        Visible: =!IsBlank(varDlgCieError)
+                  - conCieDlg_Acciones:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Fill: =Color.Transparent
+                        FillPortions: =0
+                        Height: =44
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =12
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                      Children:
+                        - btnCieDlg_Cancelar:
+                            Control: Classic/Button
+                            Properties:
+                              BorderColor: =Tema.Borde
+                              Color: =Tema.Texto
+                              DisabledBorderColor: =Tema.Borde
+                              DisabledColor: =Tema.TextoSuave
+                              DisabledFill: =Tema.SuperficiePresion
+                              Fill: =Tema.Superficie
+                              FillPortions: =1
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              Height: =44
+                              HoverBorderColor: =Tema.Marca
+                              HoverColor: =Tema.Texto
+                              HoverFill: =Tema.SuperficieHover
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              OnSelect: |-
+                                =Reset(txtCieDlg_Cantidad);
+                                Reset(txtCieDlg_Texto);
+                                Set(varDlgCie, {visible: false, tipo: "", titulo: "", idinsumo: "", ID: 0})
+                              PaddingLeft: =8
+                              PaddingRight: =8
+                              PressedBorderColor: =Tema.Marca
+                              PressedColor: =Tema.Texto
+                              PressedFill: =Tema.SuperficiePresion
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                              Size: =TipoEtiqueta
+                              Text: ="Cancelar"
+                        - btnCieDlg_Guardar:
+                            Control: Classic/Button
+                            Properties:
+                              BorderColor: =Tema.Marca
+                              Color: =Tema.Texto
+                              DisabledBorderColor: =Tema.Borde
+                              DisabledColor: =Tema.TextoSuave
+                              DisabledFill: =Tema.SuperficiePresion
+                              Fill: =Tema.Marca
+                              FillPortions: =1
+                              FocusedBorderColor: =Tema.Texto
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              Height: =44
+                              HoverBorderColor: =Tema.MarcaHover
+                              HoverColor: =Tema.Texto
+                              HoverFill: =Tema.MarcaHover
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              OnSelect: |-
+                                =With(
+                                    {
+                                        tipo: varDlgCie.tipo,
+                                        ins: LookUp(Insumos, idinsumo = If(varDlgCie.tipo = "correccion", drpCieDlg_Insumo.Selected.idinsumo, varDlgCie.idinsumo)),
+                                        msg: ValidarCantidad(txtCieDlg_Cantidad.Text, true),
+                                        cant: NumeroDe(txtCieDlg_Cantidad.Text)
+                                    },
+                                    If(
+                                        tipo = "correccion" && IsBlank(ins), Set(varDlgCieError, "Elige el insumo."),
+                                        !IsBlank(msg), Set(varDlgCieError, msg),
+                                        tipo = "entrada" && cant <= 0, Set(varDlgCieError, "La cantidad debe ser mayor a 0."),
+                                        tipo = "entrada" && IsBlank(Trim(txtCieDlg_Texto.Text)), Set(varDlgCieError, "La referencia es obligatoria."),
+                                        tipo = "correccion" && IsBlank(Trim(txtCieDlg_Texto.Text)), Set(varDlgCieError, "El motivo es obligatorio."),
+                                        Set(varDlgCieError, "");
+                                        Switch(
+                                            tipo,
+                                            "corregir",
+                                            With(
+                                                {lid: varDlgCie.ID},
+                                                Patch(raw_inv_conteo_semanal_linea, LookUp(raw_inv_conteo_semanal_linea, ID = lid), {cantidad: cant, sinExistencia: false, resuelta: true, resueltaPor: NombreRol(varRol), resolucion: "Corregida"});
+                                                Patch(colLineas, LookUp(colLineas, ID = lid), {cantidad: cant, sinExistencia: false, resuelta: true, resueltaPor: NombreRol(varRol), resolucion: "Corregida"})
+                                            ),
+                                            "entrada",
+                                            With(
+                                                {
+                                                    mv: Patch(
+                                                        raw_inv_movimiento,
+                                                        Defaults(raw_inv_movimiento),
+                                                        {
+                                                            Title: varConteoId,
+                                                            fecha: Now(),
+                                                            idinsumo: ins.idinsumo,
+                                                            idconcepto: If(drpCieDlg_Tipo.Selected.Value = "Transferencia de entrada", "TRE", "CMP"),
+                                                            cantidad: cant,
+                                                            costo: ins.costopromedio,
+                                                            idalmacen: ins.idalmacen,
+                                                            referencia: Trim(txtCieDlg_Texto.Text)
+                                                        }
+                                                    )
+                                                },
+                                                // Ajuste de existencia (supuesto P-10), lectura fresca (R-H)
+                                                With(
+                                                    {iid: ins.idinsumo},
+                                                    Patch(raw_inv_insumo, LookUp(raw_inv_insumo, idinsumo = iid), {existencia: LookUp(raw_inv_insumo, idinsumo = iid).existencia + cant})
+                                                );
+                                                Collect(colMovSemana, mv);
+                                                UpdateIf(colRef, idinsumo = ins.idinsumo, {mov: mov + cant})
+                                            ),
+                                            "correccion",
+                                            With(
+                                                {ex: LookUp(colLineas, idinsumo = ins.idinsumo), v: Coalesce(varConteo.version_raw, 1) + 1},
+                                                Collect(
+                                                    raw_inv_conteo_semanal_historial,
+                                                    {
+                                                        Title: varConteoId & "-v" & v,
+                                                        conteoId: varConteoId,
+                                                        version_raw: v,
+                                                        idinsumo: ins.idinsumo,
+                                                        antes: Coalesce(ex.cantidad, 0),
+                                                        despues: cant,
+                                                        motivo: Trim(txtCieDlg_Texto.Text),
+                                                        por: User().FullName,
+                                                        el: Now(),
+                                                        rol: varRol
+                                                    }
+                                                );
+                                                With(
+                                                    {
+                                                        r: Patch(
+                                                            raw_inv_conteo_semanal_linea,
+                                                            Coalesce(ex, Defaults(raw_inv_conteo_semanal_linea)),
+                                                            {Title: varConteoId & "-" & ins.idinsumo, conteoId: varConteoId, periodo: varPeriodo, idinsumo: ins.idinsumo, cantidad: cant, sinExistencia: false, resuelta: true, resueltaPor: NombreRol(varRol), resolucion: "Corrección v" & v}
+                                                        )
+                                                    },
+                                                    RemoveIf(colLineas, idinsumo = ins.idinsumo);
+                                                    Collect(colLineas, r)
+                                                );
+                                                Set(varConteo, Patch(raw_inv_conteo_semanal, LookUp(raw_inv_conteo_semanal, id_raw = varConteoId), {estado: "Corregido", version_raw: v}));
+                                                ClearCollect(colHist, Filter(raw_inv_conteo_semanal_historial, conteoId = varConteoId))
+                                            )
+                                        );
+                                        Reset(txtCieDlg_Cantidad);
+                                        Reset(txtCieDlg_Texto);
+                                        Set(varDlgCie, {visible: false, tipo: "", titulo: "", idinsumo: "", ID: 0});
+                                        Select(btnCie_Recalcular);
+                                        Notify("Guardado", NotificationType.Success)
+                                    )
+                                )
+                              PaddingLeft: =8
+                              PaddingRight: =8
+                              PressedBorderColor: =Tema.Marca
+                              PressedColor: =Tema.Texto
+                              PressedFill: =Tema.MarcaHover
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                              Size: =TipoEtiqueta
+                              Text: ="✓ Guardar"
+      - btnCie_Recalcular:
+          Control: Classic/Button
+          Properties:
+            BorderColor: =Tema.Borde
+            Color: =Tema.Texto
+            DisabledBorderColor: =Tema.Borde
+            DisabledColor: =Tema.TextoSuave
+            DisabledFill: =Tema.SuperficiePresion
+            Fill: =Tema.Superficie
+            FocusedBorderColor: =Tema.Marca
+            FocusedBorderThickness: =2
+            Font: =Font.'Segoe UI'
+            Height: =10
+            HoverBorderColor: =Tema.Marca
+            HoverColor: =Tema.Texto
+            HoverFill: =Tema.SuperficieHover
+            OnSelect: |-
+              =// colCierre: líneas con su disponible y si quedan pendientes (UX02 §03 colPendientes; B-09 supuesto)
+              ClearCollect(
+                  colCierre,
+                  ForAll(
+                      colLineas As L,
+                      With(
+                          {i: LookUp(Insumos, idinsumo = L.idinsumo), rf: LookUp(colRef, idinsumo = L.idinsumo)},
+                          With(
+                              {disp: If(IsBlank(rf.pasada), Blank(), rf.pasada + rf.mov)},
+                              {
+                                  ID: L.ID, idinsumo: L.idinsumo, Insumo: i.descripcion, Ab: i.Ab, Costo: i.costopromedio,
+                                  cantidad: L.cantidad, sinExistencia: L.sinExistencia, alerta: L.alerta, resuelta: L.resuelta,
+                                  resueltaPor: L.resueltaPor, pasada: rf.pasada, mov: rf.mov, disp: disp,
+                                  excede: !L.sinExistencia && !IsBlank(disp) && L.cantidad > disp,
+                                  pendiente: (!IsBlank(L.alerta) && !L.resuelta) || (!L.sinExistencia && !IsBlank(disp) && L.cantidad > disp)
+                              }
+                          )
+                      )
+                  )
+              )
+            PaddingLeft: =8
+            PaddingRight: =8
+            PressedBorderColor: =Tema.Marca
+            PressedColor: =Tema.Texto
+            PressedFill: =Tema.SuperficiePresion
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            Size: =TipoEtiqueta
+            Text: ="Recalcular"
+            Visible: =false
+            Width: =10
