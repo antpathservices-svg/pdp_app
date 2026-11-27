@@ -1,0 +1,371 @@
+Screens:
+  scrInventarios:
+    Properties:
+      Fill: =Tema.Fondo
+    Children:
+      - conInv_Raiz:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            DropShadow: =DropShadow.None
+            Fill: =Tema.Fondo
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =Resp(12, 24, 32)
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingBottom: =Gutter
+            PaddingLeft: =MargenColumna(Parent.Width)
+            PaddingRight: =MargenColumna(Parent.Width)
+            PaddingTop: =Gutter
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =Parent.Width
+          Children:
+            - conInv_Header:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderColor: =Tema.Marca
+                  DropShadow: =DropShadow.None
+                  Fill: =Tema.Superficie
+                  FillPortions: =0
+                  Height: =Resp(56, 64, 64)
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =12
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
+                Children:
+                  - btnInv_Regresar:
+                      Control: Classic/Button
+                      Properties:
+                        BorderColor: =Tema.Borde
+                        Color: =Tema.Texto
+                        DisabledBorderColor: =Tema.Borde
+                        DisabledColor: =Tema.TextoSuave
+                        DisabledFill: =Tema.SuperficiePresion
+                        Fill: =Tema.Fondo
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        Height: =44
+                        HoverBorderColor: =Tema.Marca
+                        HoverColor: =Tema.Texto
+                        HoverFill: =Tema.SuperficieHover
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        OnSelect: =Notify("El menú principal se integra en la app Menú", NotificationType.Information)
+                        PaddingLeft: =8
+                        PaddingRight: =8
+                        PressedBorderColor: =Tema.Marca
+                        PressedColor: =Tema.Texto
+                        PressedFill: =Tema.SuperficiePresion
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        Size: =TipoAppTitulo
+                        Text: ="‹"
+                        Tooltip: ="Regresar al menú"
+                        Width: =44
+                  - lblInv_Marca:
+                      Control: Label
+                      Properties:
+                        Color: =Tema.TextoMarca
+                        FillPortions: =1
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Bold
+                        Height: =28
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =TipoAppTitulo
+                        Text: ="Pizza Deprizza"
+            - conInv_Titulo:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  Fill: =Color.Transparent
+                  FillPortions: =0
+                  Height: =(Resp(32, 38, 44)) + (24) + 1 * (4)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =4
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                Children:
+                  - lblInv_Titulo:
+                      Control: Label
+                      Properties:
+                        Color: =Tema.Texto
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Bold
+                        Height: =Resp(32, 38, 44)
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =TipoHero
+                        Text: ="Inventarios y Compras"
+                  - lblInv_Subtitulo:
+                      Control: Label
+                      Properties:
+                        Color: =Tema.TextoSuave
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        Height: =24
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =TipoLead
+                        Text: ="Gestión de stock y proveedores"
+            - galInv_Kpis:
+                Control: Gallery
+                Variant: Vertical
+                Properties:
+                  AccessibleLabel: ="Indicadores de inventario"
+                  Fill: =Color.Transparent
+                  FillPortions: =0
+                  FocusedBorderColor: =Tema.Marca
+                  FocusedBorderThickness: =2
+                  Height: |-
+                    =RoundUp(CountRows(Table(
+                        {Etiqueta: "Stock crítico", Valor: Text(InsumosCriticos), Detalle: "En o bajo el 40 % del mínimo", Color: Tema.Error},
+                        {Etiqueta: "Stock bajo", Valor: Text(InsumosBajos), Detalle: "Bajo el mínimo", Color: Tema.Aviso},
+                        {Etiqueta: "Órdenes por recibir", Valor: Text(OrdenesPorRecibir), Detalle: "Pendientes de recepción", Color: Tema.TextoMarca}
+                    )) / Resp(2, 3, 3), 0) * (Resp(118, 136, 136) + 2 * MitadHueco)
+                  Items: |-
+                    =Table(
+                        {Etiqueta: "Stock crítico", Valor: Text(InsumosCriticos), Detalle: "En o bajo el 40 % del mínimo", Color: Tema.Error},
+                        {Etiqueta: "Stock bajo", Valor: Text(InsumosBajos), Detalle: "Bajo el mínimo", Color: Tema.Aviso},
+                        {Etiqueta: "Órdenes por recibir", Valor: Text(OrdenesPorRecibir), Detalle: "Pendientes de recepción", Color: Tema.TextoMarca}
+                    )
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  ShowScrollbar: =false
+                  TabIndex: =0
+                  TemplatePadding: =0
+                  TemplateSize: =Resp(118, 136, 136) + 2 * MitadHueco
+                  Visible: =varRol <> "col"
+                  WrapCount: =Resp(2, 3, 3)
+                Children:
+                  - congalInv_Kpis_Tile:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderColor: =Tema.Borde
+                        BorderThickness: =2
+                        DropShadow: =DropShadow.None
+                        Fill: =Tema.Superficie
+                        Height: =Parent.TemplateHeight - 2 * MitadHueco
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =6
+                        LayoutJustifyContent: =LayoutJustifyContent.Center
+                        PaddingBottom: =Resp(10, 14, 14)
+                        PaddingLeft: =Resp(10, 14, 14)
+                        PaddingRight: =Resp(10, 14, 14)
+                        PaddingTop: =Resp(10, 14, 14)
+                        RadiusBottomLeft: =16
+                        RadiusBottomRight: =16
+                        RadiusTopLeft: =16
+                        RadiusTopRight: =16
+                        Width: =Parent.TemplateWidth - 2 * MitadHueco
+                        X: =MitadHueco
+                        Y: =MitadHueco
+                      Children:
+                        - lblgalInv_Kpis_Etiqueta:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.TextoSuave
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =20
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoEtiqueta
+                              Text: =ThisItem.Etiqueta
+                        - lblgalInv_Kpis_Valor:
+                            Control: Label
+                            Properties:
+                              Color: =ThisItem.Color
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Bold
+                              Height: =Resp(28, 36, 36)
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =Resp(16.5, 21, 21)
+                              Text: =ThisItem.Valor
+                        - lblgalInv_Kpis_Detalle:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.TextoSuave
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              Height: =32
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoDetalle
+                              Text: =ThisItem.Detalle
+                              VerticalAlign: =VerticalAlign.Top
+            - galInv_Accesos:
+                Control: Gallery
+                Variant: Vertical
+                Properties:
+                  AccessibleLabel: ="Accesos del módulo de inventarios"
+                  Fill: =Color.Transparent
+                  FillPortions: =0
+                  FocusedBorderColor: =Tema.Marca
+                  FocusedBorderThickness: =2
+                  Height: =RoundUp(galInv_Accesos.AllItemsCount / Resp(1, 2, 2), 0) * (100 + 2 * MitadHueco)
+                  Items: |-
+                    =Filter(
+                        Table(
+                            {Id: "orden", Titulo: "Nueva orden de compra", Detalle: "Pide insumos a un proveedor", Roles: "ger,sup,gop,adm"},
+                            {Id: "general", Titulo: "Inventario general", Detalle: "Existencias, compras, movimientos y conteos", Roles: "col,ger,sup,gop,adm"},
+                            {Id: "masa", Titulo: "Control de Masa", Detalle: "Bolitas obtenidas por mezcla", Roles: "ger,sup,gop,adm"},
+                            {Id: "trf", Titulo: "Transferencia de Mercancías", Detalle: "Envío entre sucursales", Roles: "ger,sup,gop,adm"},
+                            {Id: "conteo", Titulo: "Conteo semanal", Detalle: "Conteo físico por categorías", Roles: "col,ger,sup,gop,adm"}
+                        ),
+                        varRol in Roles
+                    )
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  ShowScrollbar: =false
+                  TabIndex: =0
+                  TemplatePadding: =0
+                  TemplateSize: =100 + 2 * MitadHueco
+                  WrapCount: =Resp(1, 2, 2)
+                Children:
+                  - conAcceso_Tarjeta:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderColor: =Tema.Borde
+                        BorderThickness: =2
+                        DropShadow: =DropShadow.None
+                        Fill: =Tema.Superficie
+                        Height: =Parent.TemplateHeight - 2 * MitadHueco
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =4
+                        LayoutJustifyContent: =LayoutJustifyContent.Center
+                        PaddingLeft: =16
+                        PaddingRight: =16
+                        RadiusBottomLeft: =Resp(12, 16, 16)
+                        RadiusBottomRight: =Resp(12, 16, 16)
+                        RadiusTopLeft: =Resp(12, 16, 16)
+                        RadiusTopRight: =Resp(12, 16, 16)
+                        Width: =Parent.TemplateWidth - 2 * MitadHueco
+                        X: =MitadHueco
+                        Y: =MitadHueco
+                      Children:
+                        - lblAcceso_Titulo:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.Texto
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =26
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoCardTit
+                              Text: =ThisItem.Titulo
+                        - lblAcceso_Detalle:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.TextoSuave
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              Height: =Resp(40, 22, 22)
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoCuerpo
+                              Text: =ThisItem.Detalle
+                              VerticalAlign: =VerticalAlign.Top
+                  - btnAcceso_Tarjeta:
+                      Control: Classic/Button
+                      Properties:
+                        BorderThickness: =0
+                        Color: =Color.Transparent
+                        Fill: =Color.Transparent
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Height: =Parent.TemplateHeight - 2 * MitadHueco
+                        HoverColor: =Color.Transparent
+                        HoverFill: =ColorFade(Tema.Marca, 0.94)
+                        OnSelect: |-
+                          =Switch(
+                              ThisItem.Id,
+                              "orden", Navigate(scrInventarios_Orden, ScreenTransition.None),
+                              "general", Set(varTabGen, "Existencias"); Navigate(scrInventarios_General, ScreenTransition.None),
+                              "masa", Navigate(scrInventarios_ControlMasa, ScreenTransition.None),
+                              "trf", Navigate(scrInventarios_Transferencia, ScreenTransition.None),
+                              "conteo", Navigate(scrInventarios_Conteo, ScreenTransition.None)
+                          )
+                        PressedColor: =Color.Transparent
+                        PressedFill: =ColorFade(Tema.Marca, 0.9)
+                        RadiusBottomLeft: =Resp(12, 16, 16)
+                        RadiusBottomRight: =Resp(12, 16, 16)
+                        RadiusTopLeft: =Resp(12, 16, 16)
+                        RadiusTopRight: =Resp(12, 16, 16)
+                        Text: =""
+                        Tooltip: =ThisItem.Titulo & ". " & ThisItem.Detalle
+                        Width: =Parent.TemplateWidth - 2 * MitadHueco
+                        X: =MitadHueco
+                        Y: =MitadHueco

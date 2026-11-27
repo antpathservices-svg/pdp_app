@@ -1,0 +1,435 @@
+Screens:
+  scrInventarios_ControlMasa:
+    Properties:
+      Fill: =Tema.Fondo
+      OnVisible: |-
+        =// Carga las 10 mezclas del día (vacías o ya guardadas). Una escritura por mezcla (llave fecha + mezcla).
+        // Filtro fecha + mezcla: delegable, llave indexada (spec §6).
+        Set(varMasaError, "");
+        ClearCollect(
+            colMasa,
+            ForAll(
+                Sequence(10) As S,
+                With(
+                    {r: LookUp(raw_inv_masa_mezcla, fecha = Today() And mezcla = S.Value)},
+                    {n: S.Value, t17: Text(r.OData__x006f_z17), t10: Text(r.OData__x006f_z10), t5: Text(r.OData__x006f_z5)}
+                )
+            )
+        )
+    Children:
+      - conMasa_Raiz:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            Fill: =Tema.Fondo
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =Resp(24, 40, 48)
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingBottom: =Gutter
+            PaddingLeft: =MargenColumna(Parent.Width)
+            PaddingRight: =MargenColumna(Parent.Width)
+            PaddingTop: =Gutter
+            Width: =Parent.Width
+          Children:
+            - conMasa_Header:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  Fill: =Tema.Superficie
+                  FillPortions: =0
+                  Height: =64
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =12
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
+                Children:
+                  - btnMasa_Regresar:
+                      Control: Classic/Button
+                      Properties:
+                        BorderColor: =Tema.Borde
+                        Color: =Tema.Texto
+                        Fill: =Tema.Fondo
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        Height: =44
+                        OnSelect: =Navigate(scrInventarios, ScreenTransition.None)
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        Size: =TipoEtiqueta
+                        Text: ="‹"
+                        Tooltip: ="Regresar a Inventarios"
+                        Width: =44
+                  - lblMasa_Marca:
+                      Control: Label
+                      Properties:
+                        Color: =Tema.Texto
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Bold
+                        Size: =TipoAppTitulo
+                        Text: ="Inventarios"
+            - conMasa_Titulo:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  Fill: =Color.Transparent
+                  FillPortions: =0
+                  Height: =Resp(72, 64, 64)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                Children:
+                  - lblMasa_Titulo:
+                      Control: Label
+                      Properties:
+                        AutoHeight: =true
+                        Color: =Tema.Texto
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Bold
+                        Size: =TipoHero
+                        Text: ="Control de Masa"
+                  - lblMasa_Subtitulo:
+                      Control: Label
+                      Properties:
+                        AutoHeight: =true
+                        Color: =Tema.TextoSuave
+                        Font: =Font.'Segoe UI'
+                        Size: =TipoLead
+                        Text: ="Bolitas obtenidas por mezcla · " & Text(Today(), "dd/mm/yyyy")
+            - conMasa_Registro:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  Fill: =Tema.Superficie
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =8
+                  PaddingBottom: =12
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  PaddingTop: =12
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
+                Children:
+                  - lblMasa_Ayuda:
+                      Control: Label
+                      Properties:
+                        AutoHeight: =true
+                        Color: =Tema.TextoSuave
+                        Font: =Font.'Segoe UI'
+                        Size: =TipoDetalle
+                        Text: ="Anota cuántas bolitas de cada tamaño salieron de cada mezcla. Solo números enteros."
+                  - conMasa_Encabezado:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =Tema.SuperficieSuave
+                        FillPortions: =0
+                        Height: =36
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =8
+                        PaddingLeft: =12
+                        PaddingRight: =12
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                      Children:
+                        - lblMasaEnc_Mezcla:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.Texto
+                              FillPortions: =1
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              LayoutMinWidth: =0
+                              Size: =TipoDetalle
+                              Text: ="Mezcla"
+                        - lblMasaEnc_17:
+                            Control: Label
+                            Properties:
+                              Align: =Align.Center
+                              Color: =Tema.Texto
+                              FillPortions: =1
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              LayoutMinWidth: =0
+                              Size: =TipoDetalle
+                              Text: ="17 oz"
+                        - lblMasaEnc_10:
+                            Control: Label
+                            Properties:
+                              Align: =Align.Center
+                              Color: =Tema.Texto
+                              FillPortions: =1
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              LayoutMinWidth: =0
+                              Size: =TipoDetalle
+                              Text: ="10 oz"
+                        - lblMasaEnc_5:
+                            Control: Label
+                            Properties:
+                              Align: =Align.Center
+                              Color: =Tema.Texto
+                              FillPortions: =1
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              LayoutMinWidth: =0
+                              Size: =TipoDetalle
+                              Text: ="5 oz"
+                  - galMasa_Mezclas:
+                      Control: Gallery
+                      Variant: Vertical
+                      Properties:
+                        AccessibleLabel: ="Mezclas del día"
+                        Fill: =Color.Transparent
+                        Items: =colMasa
+                        LayoutMinHeight: =3 * 52
+                        TabIndex: =0
+                        TemplatePadding: =0
+                        TemplateSize: =52
+                      Children:
+                        - conMasa_Fila:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              Fill: =Color.Transparent
+                              Height: =Parent.TemplateHeight
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutGap: =8
+                              PaddingLeft: =12
+                              PaddingRight: =12
+                              Width: =Parent.TemplateWidth
+                            Children:
+                              - lblMasa_Num:
+                                  Control: Label
+                                  Properties:
+                                    Color: =Tema.Texto
+                                    FillPortions: =1
+                                    Font: =Font.'Segoe UI'
+                                    LayoutMinWidth: =0
+                                    Size: =TipoCuerpo
+                                    Text: ="Mezcla " & ThisItem.n
+                              - txtMasa_17:
+                                  Control: Classic/TextInput
+                                  Properties:
+                                    AccessibleLabel: ="Mezcla " & ThisItem.n & ", bolitas de 17 onzas"
+                                    BorderColor: =If(IsBlank(Self.Text) || IsMatch(Self.Text, "^\d+$"), Tema.Borde, Tema.Error)
+                                    Color: =Tema.Texto
+                                    Default: =ThisItem.t17
+                                    DisplayMode: =If(varRol in "col,ger,sup", DisplayMode.Edit, DisplayMode.View)
+                                    FillPortions: =1
+                                    Font: =Font.'Segoe UI'
+                                    Format: =TextFormat.Number
+                                    Height: =44
+                                    LayoutMinWidth: =0
+                                    OnChange: |-
+                                      =Patch(colMasa, ThisItem, {t17: Self.Text})
+                                    RadiusBottomLeft: =8
+                                    RadiusBottomRight: =8
+                                    RadiusTopLeft: =8
+                                    RadiusTopRight: =8
+                                    Size: =TipoCuerpo
+                              - txtMasa_10:
+                                  Control: Classic/TextInput
+                                  Properties:
+                                    AccessibleLabel: ="Mezcla " & ThisItem.n & ", bolitas de 10 onzas"
+                                    BorderColor: =If(IsBlank(Self.Text) || IsMatch(Self.Text, "^\d+$"), Tema.Borde, Tema.Error)
+                                    Color: =Tema.Texto
+                                    Default: =ThisItem.t10
+                                    DisplayMode: =If(varRol in "col,ger,sup", DisplayMode.Edit, DisplayMode.View)
+                                    FillPortions: =1
+                                    Font: =Font.'Segoe UI'
+                                    Format: =TextFormat.Number
+                                    Height: =44
+                                    LayoutMinWidth: =0
+                                    OnChange: |-
+                                      =Patch(colMasa, ThisItem, {t10: Self.Text})
+                                    RadiusBottomLeft: =8
+                                    RadiusBottomRight: =8
+                                    RadiusTopLeft: =8
+                                    RadiusTopRight: =8
+                                    Size: =TipoCuerpo
+                              - txtMasa_5:
+                                  Control: Classic/TextInput
+                                  Properties:
+                                    AccessibleLabel: ="Mezcla " & ThisItem.n & ", bolitas de 5 onzas"
+                                    BorderColor: =If(IsBlank(Self.Text) || IsMatch(Self.Text, "^\d+$"), Tema.Borde, Tema.Error)
+                                    Color: =Tema.Texto
+                                    Default: =ThisItem.t5
+                                    DisplayMode: =If(varRol in "col,ger,sup", DisplayMode.Edit, DisplayMode.View)
+                                    FillPortions: =1
+                                    Font: =Font.'Segoe UI'
+                                    Format: =TextFormat.Number
+                                    Height: =44
+                                    LayoutMinWidth: =0
+                                    OnChange: |-
+                                      =Patch(colMasa, ThisItem, {t5: Self.Text})
+                                    RadiusBottomLeft: =8
+                                    RadiusBottomRight: =8
+                                    RadiusTopLeft: =8
+                                    RadiusTopRight: =8
+                                    Size: =TipoCuerpo
+                  - conMasa_Total:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =Tema.SuperficieSuave
+                        FillPortions: =0
+                        Height: =44
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =8
+                        PaddingLeft: =12
+                        PaddingRight: =12
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                      Children:
+                        - lblMasaTot_Etiqueta:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.Texto
+                              FillPortions: =1
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Bold
+                              LayoutMinWidth: =0
+                              Size: =TipoCuerpo
+                              Text: ="Total"
+                        - lblMasaTot_17:
+                            Control: Label
+                            Properties:
+                              Align: =Align.Center
+                              Color: =Tema.Texto
+                              FillPortions: =1
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Bold
+                              LayoutMinWidth: =0
+                              Size: =TipoCuerpo
+                              Text: =Sum(colMasa, IfError(Value(t17), 0))
+                        - lblMasaTot_10:
+                            Control: Label
+                            Properties:
+                              Align: =Align.Center
+                              Color: =Tema.Texto
+                              FillPortions: =1
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Bold
+                              LayoutMinWidth: =0
+                              Size: =TipoCuerpo
+                              Text: =Sum(colMasa, IfError(Value(t10), 0))
+                        - lblMasaTot_5:
+                            Control: Label
+                            Properties:
+                              Align: =Align.Center
+                              Color: =Tema.Texto
+                              FillPortions: =1
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Bold
+                              LayoutMinWidth: =0
+                              Size: =TipoCuerpo
+                              Text: =Sum(colMasa, IfError(Value(t5), 0))
+                  - lblMasa_Error:
+                      Control: Label
+                      Properties:
+                        AutoHeight: =true
+                        Color: =Tema.Error
+                        Font: =Font.'Segoe UI'
+                        Size: =TipoDetalle
+                        Text: =varMasaError
+                        Visible: =!IsBlank(varMasaError)
+                  - conMasa_Acciones:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =Color.Transparent
+                        FillPortions: =0
+                        Height: =48
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =8
+                      Children:
+                        - btnMasa_Limpiar:
+                            Control: Classic/Button
+                            Properties:
+                              BorderColor: =Tema.Borde
+                              Color: =Tema.Texto
+                              DisplayMode: =If(varRol in "col,ger,sup", DisplayMode.Edit, DisplayMode.Disabled)
+                              Fill: =Tema.Superficie
+                              FillPortions: =1
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              Height: =44
+                              OnSelect: |-
+                                =Set(varMasaError, "");
+                                ClearCollect(colMasa, ForAll(Sequence(10) As S, {n: S.Value, t17: "", t10: "", t5: ""}));
+                                Navigate(scrInventarios_ControlMasa, ScreenTransition.None)
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                              Size: =TipoEtiqueta
+                              Text: ="Limpiar"
+                        - btnMasa_Guardar:
+                            Control: Classic/Button
+                            Properties:
+                              BorderColor: =Tema.Marca
+                              Color: =Tema.Texto
+                              DisplayMode: =If(varRol in "col,ger,sup", DisplayMode.Edit, DisplayMode.Disabled)
+                              Fill: =Tema.Marca
+                              FillPortions: =1
+                              FocusedBorderColor: =Tema.Texto
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              Height: =44
+                              HoverFill: =Tema.MarcaHover
+                              OnSelect: |-
+                                =If(
+                                    CountRows(Filter(colMasa, !(IsBlank(t17) || IsMatch(t17, "^\d+$")) || !(IsBlank(t10) || IsMatch(t10, "^\d+$")) || !(IsBlank(t5) || IsMatch(t5, "^\d+$")))) > 0,
+                                    Set(varMasaError, "Corrige las celdas marcadas en rojo: solo números enteros."),
+                                    CountRows(Filter(colMasa, !IsBlank(t17) || !IsBlank(t10) || !IsBlank(t5))) = 0,
+                                    Set(varMasaError, "Captura al menos una mezcla."),
+                                    Set(varMasaError, "");
+                                    // Una fila por mezcla con datos; actualiza la del día si ya existe (fecha + mezcla)
+                                    Patch(
+                                        raw_inv_masa_mezcla,
+                                        ForAll(
+                                            Filter(colMasa, !IsBlank(t17) || !IsBlank(t10) || !IsBlank(t5)) As M,
+                                            Patch(
+                                                Coalesce(LookUp(raw_inv_masa_mezcla, fecha = Today() And mezcla = M.n), Defaults(raw_inv_masa_mezcla)),
+                                                {
+                                                    Title: "MZ-" & Text(Today(), "yyyy-mm-dd") & "-" & M.n,
+                                                    fecha: Today(),
+                                                    mezcla: M.n,
+                                                    OData__x006f_z17: IfError(Value(M.t17), 0),
+                                                    OData__x006f_z10: IfError(Value(M.t10), 0),
+                                                    OData__x006f_z5: IfError(Value(M.t5), 0),
+                                                    capturadoPor: User().FullName,
+                                                    capturadoEl: Now()
+                                                }
+                                            )
+                                        )
+                                    );
+                                    Notify("Control de Masa guardado", NotificationType.Success)
+                                )
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                              Size: =TipoEtiqueta
+                              Text: ="Guardar"

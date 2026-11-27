@@ -2,6 +2,21 @@
 
 Registro de decisiones que cambian cómo se interpretan las fuentes. Más reciente arriba.
 
+## 2026-11-23 · Carga inicial
+
+### D8 · Reglas de la carga inicial (detalla D7)
+
+- **Corte:** se carga el volcado tal cual (último dato 2026-10-28). Los días posteriores se cubren después con cargas incrementales o un volcado nuevo.
+- **Columnas y llaves:** antes de cargar se amplían por D6 `raw_inv_movimiento`, `raw_inv_conteo_fisico`, `raw_inv_conteo_fisico_partida`, `raw_inv_compra` y `raw_inv_compra_partida` con las columnas del POS que faltan, y sus llaves para que identifiquen una fila (Marketplace v1.6).
+- **Insumos:** `raw_inv_insumo` se carga solo como catálogo básico (`idinsumo`, `descripcion`, `presentacion` ← `unidad`, `idcategoria` ← `idgruposi`); existencias, costos y umbrales los captura la app. Conceptos, unidades y categorías (`gruposi` → `raw_inv_insumo_categoria`) se cargan con los códigos del POS, sin traducir.
+- **Zona horaria:** las horas del POS se interpretan como hora fronteriza (`America/Matamoros`, con horario de verano) al convertirlas a UTC.
+- **Nulos:** SharePoint no distingue `NULL` de vacío ni de `0` en Sí/No; el Parquet raw local conserva la diferencia.
+- **Sin cargar:** `empresas` (datos cifrados) y las tablas del POS sin lista.
+
+### D7 · Carga inicial completa desde el snapshot del POS (matiza D4)
+
+Para arrancar, se carga a las listas de DEPRITAM **todo** el snapshot bronze de Soft Restaurant (`resultado contrato bronze.txt`, 36 tablas): las listas `raw_pos_*` (ventas completas, sin recorte de fechas) y, como **saldo inicial**, las `raw_inv_*` con catálogos (insumos, almacenes, conceptos, proveedores, unidades) e historial (compras, movimientos, conteos físicos). Es una carga única: a partir de ella, inventarios y compras se siguen capturando en la app (D4 sigue vigente para la operación). La carga se hace con el equipo ETL POS y queda documentada con su fecha de corte.
+
 ## 2026-11-22 · Inventarios
 
 ### D6 · Se puede ampliar el Marketplace para cerrar brechas

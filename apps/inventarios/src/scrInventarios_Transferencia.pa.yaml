@@ -1,0 +1,1204 @@
+Screens:
+  scrInventarios_Transferencia:
+    Properties:
+      Fill: =Tema.Fondo
+      OnVisible: |-
+        =Set(varTrfError, "");
+        If(IsBlank(varTrfSentido), Set(varTrfSentido, "envia"));
+        If(
+            CountRows(colTrf) = 0,
+            Collect(colTrf, {n: 1, idinsumo: "", descripcion: "", cantidad: "", unidad: "Pieza", precio: ""})
+        )
+    Children:
+      - conTrf_Raiz:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            DropShadow: =DropShadow.None
+            Fill: =Tema.Fondo
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =Resp(12, 24, 32)
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingBottom: =Gutter
+            PaddingLeft: =MargenColumna(Parent.Width)
+            PaddingRight: =MargenColumna(Parent.Width)
+            PaddingTop: =Gutter
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =Parent.Width
+          Children:
+            - conTrf_Header:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderColor: =Tema.Marca
+                  DropShadow: =DropShadow.None
+                  Fill: =Tema.Superficie
+                  FillPortions: =0
+                  Height: =Resp(56, 64, 64)
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =12
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingLeft: =12
+                  PaddingRight: =12
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
+                Children:
+                  - btnTrf_Regresar:
+                      Control: Classic/Button
+                      Properties:
+                        BorderColor: =Tema.Borde
+                        Color: =Tema.Texto
+                        DisabledBorderColor: =Tema.Borde
+                        DisabledColor: =Tema.TextoSuave
+                        DisabledFill: =Tema.SuperficiePresion
+                        Fill: =Tema.Fondo
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        Height: =44
+                        HoverBorderColor: =Tema.Marca
+                        HoverColor: =Tema.Texto
+                        HoverFill: =Tema.SuperficieHover
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        OnSelect: =Navigate(scrInventarios, ScreenTransition.None)
+                        PaddingLeft: =8
+                        PaddingRight: =8
+                        PressedBorderColor: =Tema.Marca
+                        PressedColor: =Tema.Texto
+                        PressedFill: =Tema.SuperficiePresion
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        Size: =TipoAppTitulo
+                        Text: ="‹"
+                        Tooltip: ="Regresar a Inventarios"
+                        Width: =44
+                  - lblTrf_Marca:
+                      Control: Label
+                      Properties:
+                        Color: =Tema.TextoMarca
+                        FillPortions: =1
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Bold
+                        Height: =28
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =TipoAppTitulo
+                        Text: ="Inventarios"
+            - conTrf_Titulo:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  Fill: =Color.Transparent
+                  FillPortions: =0
+                  Height: =(Resp(32, 38, 44)) + (24) + 1 * (4)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =4
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                Children:
+                  - lblTrf_Titulo:
+                      Control: Label
+                      Properties:
+                        Color: =Tema.Texto
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Bold
+                        Height: =Resp(32, 38, 44)
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =TipoHero
+                        Text: ="Transferencia de Mercancías"
+                  - lblTrf_Subtitulo:
+                      Control: Label
+                      Properties:
+                        Color: =Tema.TextoSuave
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        Height: =24
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =TipoLead
+                        Text: ="Solicitud de envío entre sucursales"
+            - conTrf_Sucursales:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderColor: =Tema.Borde
+                  BorderThickness: =2
+                  DropShadow: =DropShadow.None
+                  Fill: =Tema.Superficie
+                  FillPortions: =0
+                  Height: =(((26) + (22) + 1 * (2))) + (((20) + (22) + 1 * (2) + (8) + (8))) + ((44)) + (20) + (44) + 4 * (12) + (Resp(14, 18, 18)) + (Resp(14, 18, 18))
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =12
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =Resp(14, 18, 18)
+                  PaddingLeft: =Resp(14, 18, 18)
+                  PaddingRight: =Resp(14, 18, 18)
+                  PaddingTop: =Resp(14, 18, 18)
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
+                Children:
+                  - conTrfSuc_CabTexto:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Fill: =Color.Transparent
+                        Height: =(26) + (22) + 1 * (2)
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =2
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                      Children:
+                        - lblTrfSuc_Tit:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.Texto
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =26
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoCardTit
+                              Text: ="Sucursales"
+                        - lblTrfSuc_Sub:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.TextoSuave
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              Height: =22
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoCuerpo
+                              Text: ="La sucursal propia es fija; elige la otra sucursal"
+                  - conTrf_Propia:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Fill: =Tema.SuperficiePresion
+                        FillPortions: =0
+                        Height: =(20) + (22) + 1 * (2) + (8) + (8)
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =2
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PaddingBottom: =8
+                        PaddingLeft: =12
+                        PaddingRight: =12
+                        PaddingTop: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                      Children:
+                        - lblTrf_PropiaEtiqueta:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.TextoSuave
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =20
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoEtiqueta
+                              Text: ="Esta sucursal"
+                        - lblTrf_Propia:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.Texto
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Bold
+                              Height: =22
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoCuerpo
+                              Text: =SucursalPropia
+                  - conTrf_Sentido:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Fill: =Color.Transparent
+                        FillPortions: =0
+                        Height: =44
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =8
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                      Children:
+                        - btnTrf_SentidoEnvia:
+                            Control: Classic/Button
+                            Properties:
+                              BorderColor: =If(varTrfSentido = "envia", Tema.Marca, Tema.Borde)
+                              Color: =Tema.Texto
+                              DisabledBorderColor: =Tema.Borde
+                              DisabledColor: =Tema.TextoSuave
+                              DisabledFill: =Tema.SuperficiePresion
+                              DisplayMode: =If(varRol in "ger,sup", DisplayMode.Edit, DisplayMode.Disabled)
+                              Fill: =If(varTrfSentido = "envia", Tema.Marca, Tema.Superficie)
+                              FillPortions: =1
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              Height: =44
+                              HoverBorderColor: =Tema.Marca
+                              HoverColor: =Tema.Texto
+                              HoverFill: =If(varTrfSentido = "envia", Tema.MarcaHover, Tema.SuperficieHover)
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              OnSelect: =Set(varTrfSentido, "envia")
+                              PaddingLeft: =8
+                              PaddingRight: =8
+                              PressedBorderColor: =Tema.Marca
+                              PressedColor: =Tema.Texto
+                              PressedFill: =Tema.SuperficiePresion
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                              Size: =TipoEtiqueta
+                              Text: ="Esta sucursal envía"
+                        - btnTrf_SentidoRecibe:
+                            Control: Classic/Button
+                            Properties:
+                              BorderColor: =If(varTrfSentido = "recibe", Tema.Marca, Tema.Borde)
+                              Color: =Tema.Texto
+                              DisabledBorderColor: =Tema.Borde
+                              DisabledColor: =Tema.TextoSuave
+                              DisabledFill: =Tema.SuperficiePresion
+                              DisplayMode: =If(varRol in "ger,sup", DisplayMode.Edit, DisplayMode.Disabled)
+                              Fill: =If(varTrfSentido = "recibe", Tema.Marca, Tema.Superficie)
+                              FillPortions: =1
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              Height: =44
+                              HoverBorderColor: =Tema.Marca
+                              HoverColor: =Tema.Texto
+                              HoverFill: =If(varTrfSentido = "recibe", Tema.MarcaHover, Tema.SuperficieHover)
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              OnSelect: =Set(varTrfSentido, "recibe")
+                              PaddingLeft: =8
+                              PaddingRight: =8
+                              PressedBorderColor: =Tema.Marca
+                              PressedColor: =Tema.Texto
+                              PressedFill: =Tema.SuperficiePresion
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                              Size: =TipoEtiqueta
+                              Text: ="Esta sucursal recibe"
+                  - lblTrf_ContraparteEtiqueta:
+                      Control: Label
+                      Properties:
+                        Color: =Tema.Texto
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Semibold
+                        Height: =20
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =TipoEtiqueta
+                        Text: =If(varTrfSentido = "envia", "Sucursal que recibe", "Sucursal que envía")
+                  - drpTrf_Contraparte:
+                      Control: Classic/DropDown
+                      Properties:
+                        AccessibleLabel: ="Sucursal contraparte"
+                        AllowEmptySelection: =true
+                        BorderColor: =Tema.Borde
+                        ChevronBackground: =Tema.Superficie
+                        ChevronDisabledBackground: =Tema.SuperficiePresion
+                        ChevronDisabledFill: =Tema.TextoSuave
+                        ChevronFill: =Tema.TextoMarca
+                        ChevronHoverBackground: =Tema.SuperficieHover
+                        ChevronHoverFill: =Tema.TextoMarca
+                        Color: =Tema.Texto
+                        DisabledBorderColor: =Tema.Borde
+                        DisabledColor: =Tema.TextoSuave
+                        DisabledFill: =Tema.SuperficiePresion
+                        DisplayMode: =If(varRol in "ger,sup", DisplayMode.Edit, DisplayMode.Disabled)
+                        Fill: =Tema.Superficie
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        Height: =44
+                        HoverBorderColor: =Tema.Marca
+                        HoverColor: =Tema.Texto
+                        HoverFill: =Tema.SuperficieHover
+                        Items: =Filter(Sucursales, nombre <> SucursalPropia)
+                        Items.Value: =nombre
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        OnChange: =Set(varTrfError, "")
+                        PressedColor: =Tema.Texto
+                        PressedFill: =Tema.SuperficiePresion
+                        SelectionColor: =Tema.Texto
+                        SelectionFill: =Tema.Marca
+                        Size: =TipoCuerpo
+            - conTrf_Mercancia:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderColor: =Tema.Borde
+                  BorderThickness: =2
+                  DropShadow: =DropShadow.None
+                  Fill: =Tema.Superficie
+                  FillPortions: =0
+                  Height: =(((26) + (22) + 1 * (2))) + ((36)) + ((galTrf_Partidas.AllItemsCount * Resp(108, 56, 56))) + (44) + ((44)) + 4 * (12) + (Resp(14, 18, 18)) + (Resp(14, 18, 18))
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =12
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =Resp(14, 18, 18)
+                  PaddingLeft: =Resp(14, 18, 18)
+                  PaddingRight: =Resp(14, 18, 18)
+                  PaddingTop: =Resp(14, 18, 18)
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
+                Children:
+                  - conTrfMerc_CabTexto:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Fill: =Color.Transparent
+                        Height: =(26) + (22) + 1 * (2)
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =2
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                      Children:
+                        - lblTrfMerc_Tit:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.Texto
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =26
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoCardTit
+                              Text: ="Mercancía"
+                        - lblTrfMerc_Sub:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.TextoSuave
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              Height: =22
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoCuerpo
+                              Text: ="Total por renglón = cantidad × precio"
+                  - conTrfPart_Cab:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Fill: =Tema.SuperficieHover
+                        FillPortions: =0
+                        Height: =36
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =8
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PaddingLeft: =8
+                        PaddingRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        Visible: =!EsTelefono
+                      Children:
+                        - lblTrfCab_Cantidad:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.TextoSuave
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =18
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoDetalle
+                              Text: ="Cantidad"
+                              Width: =96
+                              Wrap: =false
+                        - lblTrfCab_Unidad:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.TextoSuave
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =18
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoDetalle
+                              Text: ="Unidad"
+                              Width: =128
+                              Wrap: =false
+                        - lblTrfCab_Desc:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.TextoSuave
+                              FillPortions: =3
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =18
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoDetalle
+                              Text: ="Descripción"
+                              Wrap: =false
+                        - lblTrfCab_Precio:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.TextoSuave
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =18
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoDetalle
+                              Text: ="Precio individual"
+                              Width: =110
+                              Wrap: =false
+                        - lblTrfCab_Total:
+                            Control: Label
+                            Properties:
+                              Align: =Align.Right
+                              Color: =Tema.TextoSuave
+                              FillPortions: =2
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =18
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoDetalle
+                              Text: ="Total"
+                              Wrap: =false
+                        - lblTrfCab_Vacio:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.TextoSuave
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =18
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoDetalle
+                              Text: =""
+                              Width: =44
+                              Wrap: =false
+                  - galTrf_Partidas:
+                      Control: Gallery
+                      Variant: Vertical
+                      Properties:
+                        AccessibleLabel: ="Renglones de la transferencia"
+                        Fill: =Color.Transparent
+                        FillPortions: =0
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Height: =galTrf_Partidas.AllItemsCount * Resp(108, 56, 56)
+                        Items: =colTrf
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        ShowScrollbar: =false
+                        TabIndex: =0
+                        TemplatePadding: =0
+                        TemplateSize: =Resp(108, 56, 56)
+                      Children:
+                        - conTrfPart_Fila:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              Fill: =Color.Transparent
+                              Height: =Parent.TemplateHeight - 8
+                              LayoutAlignItems: =If(EsTelefono, LayoutAlignItems.Stretch, LayoutAlignItems.Center)
+                              LayoutDirection: =If(EsTelefono, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                              LayoutGap: =8
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Width: =Parent.TemplateWidth
+                              Y: =4
+                            Children:
+                              - conTrfPart_Sub1:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    DropShadow: =DropShadow.None
+                                    Fill: =Color.Transparent
+                                    FillPortions: =If(EsTelefono, 1, 3)
+                                    Height: =44
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =8
+                                    LayoutMinHeight: =0
+                                    LayoutMinWidth: =0
+                                    RadiusBottomLeft: =0
+                                    RadiusBottomRight: =0
+                                    RadiusTopLeft: =0
+                                    RadiusTopRight: =0
+                                  Children:
+                                    - txtTrf_Cantidad:
+                                        Control: Classic/TextInput
+                                        Properties:
+                                          AccessibleLabel: ="Cantidad del renglón"
+                                          Align: =Align.Right
+                                          BorderColor: =If(IsBlank(Self.Text) || IsBlank(ValidarCantidad(Self.Text, true)), Tema.Borde, Tema.Error)
+                                          Color: =Tema.Texto
+                                          Default: =ThisItem.cantidad
+                                          DisabledBorderColor: =Tema.Borde
+                                          DisabledColor: =Tema.TextoSuave
+                                          DisabledFill: =Tema.SuperficiePresion
+                                          DisplayMode: =If(varRol in "ger,sup", DisplayMode.Edit, DisplayMode.Disabled)
+                                          Fill: =Tema.Superficie
+                                          FocusedBorderColor: =Tema.Marca
+                                          FocusedBorderThickness: =2
+                                          Font: =Font.'Segoe UI'
+                                          Format: =TextFormat.Number
+                                          Height: =44
+                                          HoverBorderColor: =Tema.Marca
+                                          LayoutMinHeight: =0
+                                          LayoutMinWidth: =0
+                                          OnChange: |-
+                                            =Patch(colTrf, ThisItem, {cantidad: Self.Text})
+                                          RadiusBottomLeft: =8
+                                          RadiusBottomRight: =8
+                                          RadiusTopLeft: =8
+                                          RadiusTopRight: =8
+                                          Size: =TipoCuerpo
+                                          VirtualKeyboardMode: =VirtualKeyboardMode.Numeric
+                                          Width: =Resp(76, 96, 96)
+                                    - drpTrf_Unidad:
+                                        Control: Classic/DropDown
+                                        Properties:
+                                          AccessibleLabel: ="Unidad del renglón"
+                                          BorderColor: =Tema.Borde
+                                          ChevronBackground: =Tema.Superficie
+                                          ChevronDisabledBackground: =Tema.SuperficiePresion
+                                          ChevronDisabledFill: =Tema.TextoSuave
+                                          ChevronFill: =Tema.TextoMarca
+                                          ChevronHoverBackground: =Tema.SuperficieHover
+                                          ChevronHoverFill: =Tema.TextoMarca
+                                          Color: =Tema.Texto
+                                          Default: =ThisItem.unidad
+                                          DisabledBorderColor: =Tema.Borde
+                                          DisabledColor: =Tema.TextoSuave
+                                          DisabledFill: =Tema.SuperficiePresion
+                                          DisplayMode: =If(varRol in "ger,sup", DisplayMode.Edit, DisplayMode.Disabled)
+                                          Fill: =Tema.Superficie
+                                          FocusedBorderColor: =Tema.Marca
+                                          FocusedBorderThickness: =2
+                                          Font: =Font.'Segoe UI'
+                                          Height: =44
+                                          HoverBorderColor: =Tema.Marca
+                                          HoverColor: =Tema.Texto
+                                          HoverFill: =Tema.SuperficieHover
+                                          Items: =Unidades
+                                          Items.Value: =unidad
+                                          LayoutMinHeight: =0
+                                          LayoutMinWidth: =0
+                                          OnChange: |-
+                                            =Patch(colTrf, ThisItem, {unidad: Self.Selected.unidad})
+                                          PressedColor: =Tema.Texto
+                                          PressedFill: =Tema.SuperficiePresion
+                                          SelectionColor: =Tema.Texto
+                                          SelectionFill: =Tema.Marca
+                                          Size: =TipoCuerpo
+                                          Width: =Resp(108, 128, 128)
+                                    - cmbTrf_Descripcion:
+                                        Control: Classic/ComboBox
+                                        Properties:
+                                          AccessibleLabel: ="Descripción del artículo"
+                                          BorderColor: =Tema.Borde
+                                          ChevronBackground: =Tema.Superficie
+                                          ChevronFill: =Tema.TextoMarca
+                                          ChevronHoverBackground: =Tema.SuperficieHover
+                                          ChevronHoverFill: =Tema.TextoMarca
+                                          Color: =Tema.Texto
+                                          DefaultSelectedItems: =Filter(Insumos, idinsumo = ThisItem.idinsumo)
+                                          DisabledBorderColor: =Tema.Borde
+                                          DisabledColor: =Tema.TextoSuave
+                                          DisabledFill: =Tema.SuperficiePresion
+                                          DisplayFields: =["descripcion"]
+                                          DisplayMode: =If(varRol in "ger,sup", DisplayMode.Edit, DisplayMode.Disabled)
+                                          Fill: =Tema.Superficie
+                                          FillPortions: =1
+                                          FocusedBorderColor: =Tema.Marca
+                                          FocusedBorderThickness: =2
+                                          Font: =Font.'Segoe UI'
+                                          Height: =44
+                                          HoverBorderColor: =Tema.Marca
+                                          HoverColor: =Tema.Texto
+                                          HoverFill: =Tema.SuperficieHover
+                                          InputTextPlaceholder: ="Artículo del catálogo"
+                                          Items: =Insumos
+                                          LayoutMinHeight: =0
+                                          LayoutMinWidth: =0
+                                          OnChange: |-
+                                            =With(
+                                                {s: Self.Selected},
+                                                Patch(
+                                                    colTrf,
+                                                    ThisItem,
+                                                    {
+                                                        idinsumo: Coalesce(s.idinsumo, ""),
+                                                        descripcion: Coalesce(s.descripcion, ""),
+                                                        unidad: Coalesce(s.presentacion, ThisItem.unidad),
+                                                        precio: If(IsBlank(s), ThisItem.precio, Text(s.costopromedio))
+                                                    }
+                                                )
+                                            )
+                                          PressedColor: =Tema.Texto
+                                          PressedFill: =Tema.SuperficiePresion
+                                          SearchFields: =["descripcion"]
+                                          SelectMultiple: =false
+                                          SelectionColor: =Tema.Texto
+                                          SelectionFill: =Tema.Marca
+                                          SelectionTagColor: =Tema.Texto
+                                          SelectionTagFill: =Tema.SuperficieSuave
+                                          Size: =TipoCuerpo
+                              - conTrfPart_Sub2:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    DropShadow: =DropShadow.None
+                                    Fill: =Color.Transparent
+                                    FillPortions: =If(EsTelefono, 1, 2)
+                                    Height: =44
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =8
+                                    LayoutMinHeight: =0
+                                    LayoutMinWidth: =0
+                                    RadiusBottomLeft: =0
+                                    RadiusBottomRight: =0
+                                    RadiusTopLeft: =0
+                                    RadiusTopRight: =0
+                                  Children:
+                                    - txtTrf_Precio:
+                                        Control: Classic/TextInput
+                                        Properties:
+                                          AccessibleLabel: ="Precio individual"
+                                          Align: =Align.Right
+                                          BorderColor: =Tema.Borde
+                                          Color: =Tema.Texto
+                                          Default: =ThisItem.precio
+                                          DisabledBorderColor: =Tema.Borde
+                                          DisabledColor: =Tema.TextoSuave
+                                          DisabledFill: =Tema.SuperficiePresion
+                                          DisplayMode: =If(varRol in "ger,sup", DisplayMode.Edit, DisplayMode.Disabled)
+                                          Fill: =Tema.Superficie
+                                          FocusedBorderColor: =Tema.Marca
+                                          FocusedBorderThickness: =2
+                                          Font: =Font.'Segoe UI'
+                                          Format: =TextFormat.Number
+                                          Height: =44
+                                          HoverBorderColor: =Tema.Marca
+                                          LayoutMinHeight: =0
+                                          LayoutMinWidth: =0
+                                          OnChange: |-
+                                            =Patch(colTrf, ThisItem, {precio: Self.Text})
+                                          RadiusBottomLeft: =8
+                                          RadiusBottomRight: =8
+                                          RadiusTopLeft: =8
+                                          RadiusTopRight: =8
+                                          Size: =TipoCuerpo
+                                          VirtualKeyboardMode: =VirtualKeyboardMode.Numeric
+                                          Width: =Resp(104, 110, 110)
+                                    - lblTrf_Total:
+                                        Control: Label
+                                        Properties:
+                                          Align: =Align.Right
+                                          Color: =Tema.Texto
+                                          FillPortions: =1
+                                          FocusedBorderColor: =Tema.Marca
+                                          FocusedBorderThickness: =2
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =22
+                                          LayoutMinHeight: =0
+                                          LayoutMinWidth: =0
+                                          PaddingBottom: =0
+                                          PaddingLeft: =0
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          Size: =TipoCuerpo
+                                          Text: =Text(NumeroDe(ThisItem.cantidad) * NumeroDe(ThisItem.precio), "$#,##0.00")
+                                          Wrap: =false
+                                    - btnTrf_Quitar:
+                                        Control: Classic/Button
+                                        Properties:
+                                          BorderColor: =Color.Transparent
+                                          Color: =Tema.TextoMarca
+                                          DisabledBorderColor: =Tema.Borde
+                                          DisabledColor: =Tema.TextoSuave
+                                          DisabledFill: =Tema.SuperficiePresion
+                                          DisplayMode: =If(varRol in "ger,sup", DisplayMode.Edit, DisplayMode.Disabled)
+                                          Fill: =Color.Transparent
+                                          FocusedBorderColor: =Tema.Marca
+                                          FocusedBorderThickness: =2
+                                          Font: =Font.'Segoe UI'
+                                          Height: =44
+                                          HoverBorderColor: =Color.Transparent
+                                          HoverColor: =Tema.TextoMarca
+                                          HoverFill: =Tema.SuperficieSuave
+                                          LayoutMinHeight: =0
+                                          LayoutMinWidth: =0
+                                          OnSelect: =Remove(colTrf, ThisItem)
+                                          PaddingLeft: =8
+                                          PaddingRight: =8
+                                          PressedBorderColor: =Color.Transparent
+                                          PressedColor: =Tema.TextoMarca
+                                          PressedFill: =Tema.SuperficiePresion
+                                          RadiusBottomLeft: =8
+                                          RadiusBottomRight: =8
+                                          RadiusTopLeft: =8
+                                          RadiusTopRight: =8
+                                          Size: =TipoEtiqueta
+                                          Text: ="✕"
+                                          Tooltip: ="Quitar renglón"
+                                          Width: =44
+                  - btnTrf_Agregar:
+                      Control: Classic/Button
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Start
+                        BorderColor: =Color.Transparent
+                        Color: =Tema.TextoMarca
+                        DisabledBorderColor: =Tema.Borde
+                        DisabledColor: =Tema.TextoSuave
+                        DisabledFill: =Tema.SuperficiePresion
+                        DisplayMode: =If(varRol in "ger,sup", DisplayMode.Edit, DisplayMode.Disabled)
+                        Fill: =Color.Transparent
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        Height: =44
+                        HoverBorderColor: =Color.Transparent
+                        HoverColor: =Tema.TextoMarca
+                        HoverFill: =Tema.SuperficieSuave
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        OnSelect: |-
+                          =Collect(colTrf, {n: Coalesce(Max(colTrf, n), 0) + 1, idinsumo: "", descripcion: "", cantidad: "", unidad: "Pieza", precio: ""})
+                        PaddingLeft: =8
+                        PaddingRight: =8
+                        PressedBorderColor: =Color.Transparent
+                        PressedColor: =Tema.TextoMarca
+                        PressedFill: =Tema.SuperficiePresion
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        Size: =TipoEtiqueta
+                        Text: ="+ Agregar renglón"
+                        Width: =200
+                  - conTrf_TotalGeneral:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Fill: =Tema.SuperficieSuave
+                        FillPortions: =0
+                        Height: =44
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =8
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PaddingLeft: =12
+                        PaddingRight: =12
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                      Children:
+                        - lblTrfTot_Etiqueta:
+                            Control: Label
+                            Properties:
+                              Color: =Tema.Texto
+                              FillPortions: =1
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Bold
+                              Height: =22
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoCuerpo
+                              Text: ="Total de la transferencia"
+                        - lblTrf_TotalGeneral:
+                            Control: Label
+                            Properties:
+                              Align: =Align.Right
+                              Color: =Tema.Texto
+                              FillPortions: =1
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Bold
+                              Height: =22
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =TipoCuerpo
+                              Text: =Text(Sum(colTrf, NumeroDe(cantidad) * NumeroDe(precio)), "$#,##0.00")
+            - conTrf_Enviar:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderColor: =Tema.Borde
+                  BorderThickness: =2
+                  DropShadow: =DropShadow.None
+                  Fill: =Tema.Superficie
+                  FillPortions: =0
+                  Height: =(Resp(44, 22, 22)) + (If(!(varRol in "ger,sup"), 22, 0)) + (If(!IsBlank(varTrfError), 22, 0)) + ((44)) + 3 * (12) + (Resp(14, 18, 18)) + (Resp(14, 18, 18))
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =12
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  PaddingBottom: =Resp(14, 18, 18)
+                  PaddingLeft: =Resp(14, 18, 18)
+                  PaddingRight: =Resp(14, 18, 18)
+                  PaddingTop: =Resp(14, 18, 18)
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
+                Children:
+                  - lblTrf_Ayuda:
+                      Control: Label
+                      Properties:
+                        Color: =Tema.TextoSuave
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        Height: =Resp(44, 22, 22)
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =TipoCuerpo
+                        Text: |-
+                          ="Es una solicitud: la sucursal que envía confirma el envío y la que recibe confirma la recepción."
+                        VerticalAlign: =VerticalAlign.Top
+                  - lblTrf_SoloLectura:
+                      Control: Label
+                      Properties:
+                        Color: =Tema.Aviso
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Semibold
+                        Height: =22
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =TipoCuerpo
+                        Text: ="Solo el Supervisor y el Gerente de sucursal registran transferencias."
+                        Visible: =!(varRol in "ger,sup")
+                  - lblTrf_Error:
+                      Control: Label
+                      Properties:
+                        Color: =Tema.Error
+                        FocusedBorderColor: =Tema.Marca
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Semibold
+                        Height: =22
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =TipoCuerpo
+                        Text: =varTrfError
+                        Visible: =!IsBlank(varTrfError)
+                  - conTrf_Acciones:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Fill: =Color.Transparent
+                        FillPortions: =0
+                        Height: =44
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =12
+                        LayoutMinHeight: =0
+                        LayoutMinWidth: =0
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                      Children:
+                        - btnTrf_Cancelar:
+                            Control: Classic/Button
+                            Properties:
+                              BorderColor: =Tema.Borde
+                              Color: =Tema.Texto
+                              DisabledBorderColor: =Tema.Borde
+                              DisabledColor: =Tema.TextoSuave
+                              DisabledFill: =Tema.SuperficiePresion
+                              Fill: =Tema.Superficie
+                              FillPortions: =1
+                              FocusedBorderColor: =Tema.Marca
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              Height: =44
+                              HoverBorderColor: =Tema.Marca
+                              HoverColor: =Tema.Texto
+                              HoverFill: =Tema.SuperficieHover
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              OnSelect: |-
+                                =Clear(colTrf);
+                                Navigate(scrInventarios, ScreenTransition.None)
+                              PaddingLeft: =8
+                              PaddingRight: =8
+                              PressedBorderColor: =Tema.Marca
+                              PressedColor: =Tema.Texto
+                              PressedFill: =Tema.SuperficiePresion
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                              Size: =TipoEtiqueta
+                              Text: ="Cancelar"
+                        - btnTrf_Enviar:
+                            Control: Classic/Button
+                            Properties:
+                              BorderColor: =Tema.Marca
+                              Color: =Tema.Texto
+                              DisabledBorderColor: =Tema.Borde
+                              DisabledColor: =Tema.TextoSuave
+                              DisabledFill: =Tema.SuperficiePresion
+                              DisplayMode: =If(varRol in "ger,sup", DisplayMode.Edit, DisplayMode.Disabled)
+                              Fill: =Tema.Marca
+                              FillPortions: =1
+                              FocusedBorderColor: =Tema.Texto
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              Height: =44
+                              HoverBorderColor: =Tema.MarcaHover
+                              HoverColor: =Tema.Texto
+                              HoverFill: =Tema.MarcaHover
+                              LayoutMinHeight: =0
+                              LayoutMinWidth: =0
+                              OnSelect: |-
+                                =If(
+                                    IsBlank(drpTrf_Contraparte.Selected.nombre),
+                                    Set(varTrfError, "Elige la sucursal que envía y la que recibe."),
+                                    drpTrf_Contraparte.Selected.nombre = SucursalPropia,
+                                    Set(varTrfError, "Deben ser sucursales distintas."),
+                                    CountRows(colTrf) = 0,
+                                    Set(varTrfError, "Agrega al menos un renglón."),
+                                    CountRows(Filter(colTrf, IsBlank(descripcion) || NumeroDe(cantidad) <= 0 || !IsBlank(ValidarCantidad(cantidad, true)))) > 0,
+                                    Set(varTrfError, "Revisa los renglones: descripción y cantidad mayor a 0."),
+                                    Set(varTrfError, "");
+                                    With(
+                                        {ult: First(Sort(raw_inv_traspaso, ID, SortOrder.Descending))},
+                                        Set(varTrfFolio, "T-" & Text(Coalesce(IfError(Value(Mid(ult.id_raw, 3)), 0), 0) + 1, "0000"))
+                                    );
+                                    With(
+                                        {
+                                            vEnvia: If(varTrfSentido = "envia", SucursalPropia, drpTrf_Contraparte.Selected.nombre),
+                                            vRecibe: If(varTrfSentido = "envia", drpTrf_Contraparte.Selected.nombre, SucursalPropia)
+                                        },
+                                        Patch(
+                                            raw_inv_traspaso,
+                                            Defaults(raw_inv_traspaso),
+                                            {Title: varTrfFolio, id_raw: varTrfFolio, envia: vEnvia, recibe: vRecibe, estado: "Solicitada", creada: Today(), creadaPor: User().FullName}
+                                        )
+                                    );
+                                    Collect(
+                                        raw_inv_traspaso_partida,
+                                        ForAll(
+                                            Sequence(CountRows(colTrf)) As k,
+                                            With(
+                                                {L: Index(colTrf, k.Value)},
+                                                {
+                                                    Title: varTrfFolio & "-" & k.Value,
+                                                    id_traspaso: varTrfFolio,
+                                                    renglon: k.Value,
+                                                    idinsumo: L.idinsumo,
+                                                    descripcion: L.descripcion,
+                                                    cantidad: NumeroDe(L.cantidad),
+                                                    unidad: L.unidad,
+                                                    precio: NumeroDe(L.precio)
+                                                }
+                                            )
+                                        )
+                                    );
+                                    Clear(colTrf);
+                                    Reset(drpTrf_Contraparte);
+                                    Notify("Solicitud enviada: " & varTrfFolio, NotificationType.Success);
+                                    Set(varTabGen, "Movimientos");
+                                    Navigate(scrInventarios_General, ScreenTransition.None)
+                                )
+                              PaddingLeft: =8
+                              PaddingRight: =8
+                              PressedBorderColor: =Tema.Marca
+                              PressedColor: =Tema.Texto
+                              PressedFill: =Tema.MarcaHover
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                              Size: =TipoEtiqueta
+                              Text: ="➤ Enviar solicitud"

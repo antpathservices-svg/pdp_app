@@ -1,0 +1,10 @@
+EditorState:
+  ScreensOrder:
+    - scrInventarios
+    - scrInventarios_General
+    - scrInventarios_ControlMasa
+    - scrInventarios_Conteo
+    - scrInventarios_ConteoCierre
+    - scrInventarios_ConteoRevision
+    - scrInventarios_Orden
+    - scrInventarios_Transferencia

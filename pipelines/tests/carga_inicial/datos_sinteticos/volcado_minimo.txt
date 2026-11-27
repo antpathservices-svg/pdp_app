@@ -1,0 +1,23 @@
+orden tabla filas_hoy filas_contrato
+----- ----- --------- --------------
+1 ta 4 4
+2 tb 2 2
+3 tc 1 1
+
+id   nombre   monto   
+---- -------- --------
+1    Pizza      10.50
+2    NULL        3.00
+3             NULL
+4    Ñandú       0.00
+
+solo  
+------
+a
+NULL
+
+k   v         
+--- ----------
+x   corta
+
+Hora de finalización: 2026-10-29T02:19:12.9897697-05:00
