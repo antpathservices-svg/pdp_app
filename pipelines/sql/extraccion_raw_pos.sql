@@ -8,11 +8,17 @@
    ========================================================================== */
 USE softrestaurant10;
 SET NOCOUNT ON;
-SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 
-/* Carga incremental opcional: descomenta el WHERE de las tablas transaccionales. */
-DECLARE @desde datetime = '2026-10-01';   -- inclusivo
-DECLARE @hasta datetime = '2026-10-29';   -- exclusivo
+/* Rango obligatorio para las tablas transaccionales. Los valores llegan desde el runner. */
+DECLARE @desde datetime;
+DECLARE @hasta datetime;
+DECLARE @idempresa int = 1;
+
+IF @desde IS NULL OR @hasta IS NULL
+    THROW 50001, 'Los valores @desde y @hasta son obligatorios.', 1;
+
+IF @hasta <= @desde
+    THROW 50002, 'El rango debe tener @hasta posterior a @desde.', 1;
 
 /* ---------- 01. raw_pos_venta_cuenta · dbo.cheques · muestra: dbo.cheques.txt ---------- */
 SELECT
@@ -35,7 +41,8 @@ SELECT
     totalcortesias,
     total
 FROM dbo.cheques
--- WHERE cierre >= @desde AND cierre < @hasta
+WHERE idempresa = @idempresa
+  AND cierre >= @desde AND cierre < @hasta
 ORDER BY cierre DESC;
 
 /* ---------- 02. raw_pos_venta_partida · dbo.cheqdet · muestra: dbo.cheqdet.txt ---------- */
@@ -57,7 +64,7 @@ SELECT
     hora,
     idturno_cierre
 FROM dbo.cheqdet
--- WHERE hora >= @desde AND hora < @hasta
+WHERE hora >= @desde AND hora < @hasta
 ORDER BY foliodet DESC, movimiento;
 
 /* ---------- 03. raw_pos_venta_cancelacion · dbo.cancela · muestra: dbo.motivoscancelacion.txt (bloque 31) ---------- */
@@ -71,7 +78,7 @@ SELECT
     idmotivocancela,
     idturno_cierre
 FROM dbo.cancela
--- WHERE fecha >= @desde AND fecha < @hasta
+WHERE fecha >= @desde AND fecha < @hasta
 ORDER BY fecha DESC;
 
 /* ---------- 04. raw_pos_venta_motivo_cancelacion · dbo.motivoscancelacion · muestra: dbo.motivoscancelacion.txt (bloque 32) ---------- */
@@ -104,7 +111,8 @@ SELECT
     apertura,
     cierre
 FROM dbo.turnos
--- WHERE apertura >= @desde AND apertura < @hasta
+WHERE idempresa = @idempresa
+  AND apertura >= @desde AND apertura < @hasta
 ORDER BY apertura DESC;
 
 /* ---------- 08. raw_pos_producto · dbo.productos · muestra: dbo.productos.txt ---------- */
@@ -128,6 +136,7 @@ SELECT
     preciosinimpuestos,
     bloqueado
 FROM dbo.productosdetalle
+WHERE idempresa = @idempresa
 ORDER BY idproducto;
 
 /* ---------- 10. raw_pos_producto_grupo · dbo.grupos · muestra: dbo.grupos.txt ---------- */
@@ -166,4 +175,5 @@ SELECT
     cantidad,
     idempresa
 FROM dbo.paquetes
+WHERE idempresa = @idempresa
 ORDER BY idproductopaquete;
